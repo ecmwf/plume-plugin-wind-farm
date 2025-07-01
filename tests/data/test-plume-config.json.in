@@ -1,0 +1,17 @@
+{
+    "plugins": [
+        {
+            "name": "WindFarmPlugin",
+            "lib": "wind_farm_plugin",
+            "core-config": {
+                "wind_farm_model": {
+                    "name": "jensen",
+                    "kw": 0.04
+                },
+                "compute_power": true,
+                "export_wind_box": true,
+                "wind_turbines_filename": "@test_wind_turbine_json@"
+            }
+        }
+    ]
+}
