@@ -3,7 +3,9 @@ build:
     - ninja
   dependencies:
     - ecmwf/ecbuild@develop
+    - ecmwf/eccodes@develop
     - ecmwf/eckit@develop
+    - ecmwf/fckit@develop
     - ecmwf/atlas@develop
     - ecmwf/plume@develop
   dependency_cmake_options:
