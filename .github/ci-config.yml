@@ -1,6 +1,7 @@
 dependencies: |
   ecmwf/ecbuild
   ecmwf/eckit
+  ecmwf/fckit
   ecmwf/atlas
   ecmwf/plume
 dependency_cmake_options: |
