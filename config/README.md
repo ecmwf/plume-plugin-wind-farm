@@ -13,7 +13,7 @@ This directory contains an example of the plugin configuration file.
         },
         "compute_power": true,
         "export_wind_box": true,
-        "wind_turbines_filename": "wind_turbines_configuration_filename"
+        "wind_turbines_filename": "<wind-turbines-configuration-filename>"
     }
 }
 ```
@@ -42,10 +42,20 @@ The key ```wind_turbines_filename``` is the name of a separate JSON file that de
     "wind_turbine_defaults" : {
         "hub_height": 70.0,
         "radius": 40.0,
-        "power_coeff": 0.38,
-        "thrust_coeff": 0.5,
-        "cutoff_max": 25.0,
-        "cutoff_min": 0.2,
+        "power": {
+            "type": "constant",
+            "is_coefficient": true,
+            "value": 0.38,
+            "cutin_wind_speed": 0.2,
+            "cutout_wind_speed": 25.0
+        },
+        "thrust": {
+            "type": "constant",
+            "is_coefficient": true,
+            "value": 0.5,
+            "cutin_wind_speed": 0.2,
+            "cutout_wind_speed": 25.0
+        },
         "rho_hub": 1.25
     },
     "wind_turbines": [
@@ -65,3 +75,25 @@ The top level parameters are described in the following table. Note that in prin
 | wind_turbines            | Coordinates of wind turbines                |
 
 
+Note that wind turbine power and thrust can be defined as either constant values or user-provided curves. The tables below shows the available options:
+
+- Configuration for constant value thrust and/or power:
+
+|         Parameter        |                        Description                       |
+|--------------------------|----------------------------------------------------------|
+| type                     | "constant"                                               |
+| is_coefficient           | whether the value provided is a thrust/power coefficient |
+| value                    | value of thrust or power (coefficient, if so defined)    |
+| cutin_wind_speed         | minimum wind speed for wind turbine operation            |
+| cutout_wind_speed        | maximum wind speed for wind turbine operation            |
+
+- Configuration for tabular values for thrust/power curves
+
+|         Parameter        |                         Description                            |
+|--------------------------|----------------------------------------------------------------|
+| type                     | "tabular_wind_curve"                                           |
+| is_coefficient           | whether the value provided is a thrust/power coefficient       |
+| wind_speeds              | Array of wind speed points where the curve values are provided |
+| values                   | Array of thrust/power values                                   |
+| cutin_wind_speed         | minimum wind speed for wind turbine operation                  |
+| cutout_wind_speed        | maximum wind speed for wind turbine operation                  |

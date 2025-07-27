@@ -99,34 +99,23 @@ std::vector<WindPoint> JensenModel::computeWindAtPoints(const WindMap& wMap, con
 
                 Log::debug() << " -- Wake affecting.." << std::endl;
                 Log::debug() << " -- wtg_c: " << wtg_c << std::endl;
-                Log::debug() << " -- wtg_2_p: " << wtg_2_p << std::endl;
-                Log::debug() << " -- wtg_2_p_wind_len: " << wtg_2_p_wind_len << std::endl;
-                Log::debug() << " -- wtg_2_p_wind: " << wtg_2_p_wind << std::endl;
 
                 // wake expansion factor
-                double a = (1 - sqrt(1 - wtg->Ct())) / 2.0;
+                double a = (1 - sqrt(1 - wtg->Ct(p_vel))) / 2.0;
 
                 // pt center wake
                 Vec3 pt_wake_c = wtg_c + wtg_2_p_wind;
-                Log::debug() << " ---- pt_wake_c: " << pt_wake_c << std::endl;
-
                 Vec3 pt_wake_e = wind_perp * wtg_2_p_wind_len * kw_;
-                Log::debug() << " ---- pt_wake_e: " << pt_wake_e << std::endl;
-
                 double pt_wake_e_mag = pt_wake_e.magnitude();
-                Log::debug() << " ---- pt_wake_e_mag: " << pt_wake_e_mag << std::endl;
 
                 // from wake ctr to p_c
                 Vec3 pt_wake_p = p_c - pt_wake_c;
-                Log::debug() << " ---- pt_wake_p: " << pt_wake_p << std::endl;
                 double pt_wake_p_mag = pt_wake_p.magnitude();
-                Log::debug() << " ---- pt_wake_p_mag: " << pt_wake_p_mag << std::endl;
 
                 double a0_ij_over_ai = (pt_wake_e_mag > pt_wake_p_mag) ? 1.0 : 0.0;
-                Log::debug() << " ---- a0_ij_over_ai: " << a0_ij_over_ai << std::endl;
 
                 double x_ij     = wtg_2_p_wind_len;
-                double delta_ij = (2 * a) / std::sqrt(1 + kw_ * x_ij / wtg->radius());
+                double delta_ij = (2 * a) / std::pow(1 + kw_ * x_ij / wtg->radius(), 2);
 
                 p_vel -= delta_ij * a0_ij_over_ai * p_vel;
             }

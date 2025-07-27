@@ -133,4 +133,14 @@ std::pair<double, double> lonLat2xy(double lon1, double lat1, double lon2, doubl
 void exportWindPoints(const std::vector<WindPoint>& points, const std::string& filename);
 
 
+/** * @brief Linear interpolation in table of values
+ *
+ * @param x
+ * @param x_vals
+ * @param y_vals
+ * @return double
+ */
+double linearInterpolate(double x, const std::vector<double>& x_vals, const std::vector<double>& y_vals);
+
+
 }  // namespace wind_farm_plugin

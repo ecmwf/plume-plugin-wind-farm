@@ -11,6 +11,8 @@
 
 #include "utils.h"
 
+#include "eckit/exception/Exceptions.h"
+
 
 namespace wind_farm_plugin {
 
@@ -54,6 +56,39 @@ void exportWindPoints(const std::vector<WindPoint>& points, const std::string& f
     }
 
     file.close();
+}
+
+
+
+double linearInterpolate(double x, const std::vector<double>& x_vals, const std::vector<double>& y_vals) {
+    size_t n = x_vals.size();
+    if (n != y_vals.size()) {
+        throw eckit::BadValue("x_vals and y_vals must have the same size");
+    }
+
+    // if x < x_vals[0], then return y_vals[0]
+    if (x <= x_vals[0]) {
+        return y_vals[0];
+    }
+
+    // if x > x_vals[n-1], then return y_vals[n-1]
+    if (x >= x_vals[n - 1]) {
+        return y_vals[n - 1];
+    }
+
+    // Find the interval [x_i, x_{i+1}] such that x_i <= x <= x_{i+1}
+    for (size_t i = 0; i < n - 1; ++i) {
+        if (x_vals[i] <= x && x <= x_vals[i + 1]) {
+            double x0 = x_vals[i];
+            double x1 = x_vals[i + 1];
+            double y0 = y_vals[i];
+            double y1 = y_vals[i + 1];
+
+            // Linear interpolation formula
+            return y0 + (y1 - y0) * (x - x0) / (x1 - x0);
+        }
+    }
+
 }
 
 
