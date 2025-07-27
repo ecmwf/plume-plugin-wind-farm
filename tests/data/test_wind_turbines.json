@@ -10,10 +10,16 @@
     "wind_turbine_defaults" : {
         "hub_height": 70.0,
         "radius": 40.0,
-        "power_coeff": 0.38,
-        "thrust_coeff": 0.5,
-        "cutoff_max": 25.0,
-        "cutoff_min": 0.2,
+        "power": {
+            "type": "constant",
+            "is_coefficient": true,
+            "value": 0.5
+        },
+        "thrust": {
+            "type": "constant",
+            "is_coefficient": true,
+            "value": 0.8
+        },
         "rho_hub": 1.25
     },
     "wind_turbines": [

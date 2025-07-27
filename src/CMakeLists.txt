@@ -35,6 +35,14 @@ ecbuild_add_library(
         wfp_models/no_wake.h
         wfp_models/jensen.cc
         wfp_models/jensen.h
+        perf_curves/const_wind_curve.cc
+        perf_curves/const_wind_curve.h
+        perf_curves/curve_factory.cc
+        perf_curves/curve_factory.h
+        perf_curves/curve.cc
+        perf_curves/curve.h
+        perf_curves/tabular_wind_curve.cc
+        perf_curves/tabular_wind_curve.h
 
     PUBLIC_INCLUDES
        $<BUILD_INTERFACE:${PROJECT_BINARY_DIR}/src>

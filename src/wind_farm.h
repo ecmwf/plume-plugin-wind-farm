@@ -117,9 +117,6 @@ private:
     // calculate avg lat/lon
     void calculateAvgLatLons();
 
-    // allgatherv local wind turbines
-    std::vector<std::unique_ptr<WindTurbine>> gatherLocalWindTurbines();
-
     // configuration
     eckit::LocalConfiguration config_;
 

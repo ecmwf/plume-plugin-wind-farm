@@ -9,6 +9,7 @@
  * nor does it submit to any jurisdiction.
  */
 
+#include <numeric>
 
 #include "eckit/config/YAMLConfiguration.h"
 #include "eckit/exception/Exceptions.h"
@@ -162,85 +163,6 @@ void WindFarm::summary() const {
     }
 }
 
-
-std::vector<std::unique_ptr<WindTurbine>> WindFarm::gatherLocalWindTurbines() {
-
-    std::vector<std::unique_ptr<WindTurbine>> gatheredWindTurbines;
-
-    // mpi info
-    size_t mpi_size = eckit::mpi::comm().size();
-    size_t mpi_rank = eckit::mpi::comm().rank();
-
-    // unroll the wind turbines
-    std::vector<int> id;
-    std::vector<double> lat;
-    std::vector<double> lon;
-    std::vector<double> hubHeight;
-    std::vector<double> radius;
-    std::vector<double> Cp;
-    std::vector<double> Ct;
-    std::vector<double> cutoffMax;
-    std::vector<double> cutoffMin;
-    std::vector<double> rhoHub;
-    std::vector<size_t> nearestPointID;
-    std::vector<double> minDistanceLocal;
-    std::vector<size_t> minRankGlob;
-
-    for (const auto& wt : windTurbines_) {
-        id.push_back(wt->ID());
-        lat.push_back(wt->lat());
-        lon.push_back(wt->lon());
-        hubHeight.push_back(wt->hubHeight());
-        radius.push_back(wt->radius());
-        Cp.push_back(wt->Cp());
-        Ct.push_back(wt->Ct());
-        cutoffMax.push_back(wt->cutoffMax());
-        cutoffMin.push_back(wt->cutoffMin());
-        rhoHub.push_back(wt->rhoHub());
-        nearestPointID.push_back(wt->nearestPointID());
-        minDistanceLocal.push_back(wt->minDistanceLocal());
-        minRankGlob.push_back(wt->minRankGlob());
-    }
-
-    // gather all wind turbines
-    eckit::mpi::Buffer<int> id_recv(mpi_size);
-    eckit::mpi::Buffer<double> lat_recv(mpi_size);
-    eckit::mpi::Buffer<double> lon_recv(mpi_size);
-    eckit::mpi::Buffer<double> hubHeight_recv(mpi_size);
-    eckit::mpi::Buffer<double> radius_recv(mpi_size);
-    eckit::mpi::Buffer<double> Cp_recv(mpi_size);
-    eckit::mpi::Buffer<double> Ct_recv(mpi_size);
-    eckit::mpi::Buffer<double> cutoffMax_recv(mpi_size);
-    eckit::mpi::Buffer<double> cutoffMin_recv(mpi_size);
-    eckit::mpi::Buffer<double> rhoHub_recv(mpi_size);
-    eckit::mpi::Buffer<size_t> nearestPointID_recv(mpi_size);
-    eckit::mpi::Buffer<double> minDistanceLocal_recv(mpi_size);
-    eckit::mpi::Buffer<size_t> minRankGlob_recv(mpi_size);
-
-    eckit::mpi::comm().allGatherv(id.begin(), id.end(), id_recv);
-    eckit::mpi::comm().allGatherv(lat.begin(), lat.end(), lat_recv);
-    eckit::mpi::comm().allGatherv(lon.begin(), lon.end(), lon_recv);
-    eckit::mpi::comm().allGatherv(hubHeight.begin(), hubHeight.end(), hubHeight_recv);
-    eckit::mpi::comm().allGatherv(radius.begin(), radius.end(), radius_recv);
-    eckit::mpi::comm().allGatherv(Cp.begin(), Cp.end(), Cp_recv);
-    eckit::mpi::comm().allGatherv(Ct.begin(), Ct.end(), Ct_recv);
-    eckit::mpi::comm().allGatherv(cutoffMax.begin(), cutoffMax.end(), cutoffMax_recv);
-    eckit::mpi::comm().allGatherv(cutoffMin.begin(), cutoffMin.end(), cutoffMin_recv);
-    eckit::mpi::comm().allGatherv(rhoHub.begin(), rhoHub.end(), rhoHub_recv);
-    eckit::mpi::comm().allGatherv(nearestPointID.begin(), nearestPointID.end(), nearestPointID_recv);
-    eckit::mpi::comm().allGatherv(minDistanceLocal.begin(), minDistanceLocal.end(), minDistanceLocal_recv);
-    eckit::mpi::comm().allGatherv(minRankGlob.begin(), minRankGlob.end(), minRankGlob_recv);
-
-    for (size_t iwt = 0; iwt < lat_recv.buffer.size(); iwt++) {
-        gatheredWindTurbines.push_back(std::make_unique<WindTurbine>(
-            id_recv.buffer[iwt], lat_recv.buffer[iwt], lon_recv.buffer[iwt], hubHeight_recv.buffer[iwt],
-            radius_recv.buffer[iwt], Cp_recv.buffer[iwt], Ct_recv.buffer[iwt], cutoffMax_recv.buffer[iwt],
-            cutoffMin_recv.buffer[iwt], rhoHub_recv.buffer[iwt], nearestPointID_recv.buffer[iwt],
-            minDistanceLocal_recv.buffer[iwt], minRankGlob_recv.buffer[iwt]));
-    }
-
-    return gatheredWindTurbines;
-}
 
 void WindFarm::calculateAvgLatLons() {
 

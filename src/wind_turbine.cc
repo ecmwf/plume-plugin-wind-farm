@@ -12,6 +12,11 @@
 #include <math.h>
 #include <iostream>
 
+#include "eckit/config/Configuration.h"
+#include "eckit/config/LocalConfiguration.h"
+#include "eckit/exception/Exceptions.h"
+
+#include "utils.h"
 #include "wind_turbine.h"
 
 namespace wind_farm_plugin {
@@ -27,11 +32,25 @@ WindTurbine::WindTurbine(int id, const eckit::Configuration& conf, size_t neares
 
     hubHeight_ = conf.getDouble("hub_height", defaults.getDouble("hub_height"));
     radius_ = conf.getDouble("radius", defaults.getDouble("radius"));
-    Cp_ = conf.getDouble("power_coeff", defaults.getDouble("power_coeff"));
-    Ct_ = conf.getDouble("thrust_coeff", defaults.getDouble("thrust_coeff"));
-    cutoffMax_ = conf.getDouble("cutoff_max", defaults.getDouble("cutoff_max"));
-    cutoffMin_ = conf.getDouble("cutoff_min", defaults.getDouble("cutoff_min"));
     rhoHub_ = conf.getDouble("rho_hub", defaults.getDouble("rho_hub"));
+
+    // if the wt config contains either power, use it
+    if (conf.has("power")) {
+        power_ = std::make_unique<WindTurbinePower>(conf.getSubConfiguration("power"));
+    } else if (defaults.has("power")) {
+        power_ = std::make_unique<WindTurbinePower>(defaults.getSubConfiguration("power"));
+    } else {
+        throw eckit::BadParameter("Wind turbine configuration must have 'power' defined.", Here());
+    }
+
+    // if the wt config contains either thrust, use it
+    if (conf.has("thrust")) {
+        thrust_ = std::make_unique<WindTurbineThrust>(conf.getSubConfiguration("thrust"));
+    } else if (defaults.has("thrust")) {
+        thrust_ = std::make_unique<WindTurbineThrust>(defaults.getSubConfiguration("thrust"));
+    } else {
+        throw eckit::BadParameter("Wind turbine configuration must have 'thrust' defined.", Here());
+    }
 
     // Nearest Grid Point
     nearestPointID_   = nearestPointID;
@@ -40,40 +59,13 @@ WindTurbine::WindTurbine(int id, const eckit::Configuration& conf, size_t neares
 }
 
 
-WindTurbine::WindTurbine(int id, double lat, double lon, double hubHeight, double radius, double Cp, double Ct,
-                         double cutoffMax, double cutoffMin, double rhoHub, size_t nearestPointID,
-                         double minDistanceLocal, size_t minRankGlob) :
-    ID_{id},
-    hubHeight_{hubHeight},
-    radius_{radius},
-    Cp_{Cp},
-    Ct_{Ct},
-    cutoffMax_{cutoffMax},
-    cutoffMin_{cutoffMin},
-    rhoHub_{rhoHub},
-    nearestPointID_{nearestPointID},
-    minDistanceLocal_{minDistanceLocal},
-    minRankGlob_{minRankGlob},
-    LatLonPoint(lat, lon) {}
-
-
 double WindTurbine::computePower(const double windMag) const {
+    return power_->calculate(windMag, rhoHub_, radius_);
+}
 
-    // calc power output
-    double powerWatts;
 
-    // min/max cutoff speed
-    if (windMag < cutoffMin_) {
-        powerWatts = 0.0;
-    }
-    else if (windMag > cutoffMax_) {
-        powerWatts = 0.0;
-    }
-    else {
-        double diskArea = M_PI * radius_ * radius_;
-        powerWatts      = 0.5 * rhoHub_ * diskArea * pow(windMag, 3) * Cp_;
-    }
-    return powerWatts;
+double WindTurbine::Ct(double vmag) const {
+    return thrust_->calculate_coeff(vmag, rhoHub_, radius_);
 }
 
 
@@ -95,15 +87,17 @@ std::ostream& operator<<(std::ostream& os, const WindTurbine& wt) {
     os << "    Coordinates: " << wt.lat() << ", " << wt.lon() << std::endl;
     os << "    Hub Height: " << wt.hubHeight_ << std::endl;
     os << "    Rotor Radius: " << wt.radius_ << std::endl;
-    os << "    Power Coefficient: " << wt.Cp_ << std::endl;
-    os << "    Thrust Coefficient: " << wt.Ct_ << std::endl;
-    os << "    Cutoff Max: " << wt.cutoffMax_ << std::endl;
-    os << "    Cutoff Min: " << wt.cutoffMin_ << std::endl;
+    os << "    Power Curve: " << *(wt.power_) << std::endl;
+    os << "    Thrust Curve: " << *(wt.thrust_) << std::endl;
     os << "    Rho Hub: " << wt.rhoHub_ << std::endl;
     os << "    Nearest Point ID: " << wt.nearestPointID_ << std::endl;
     os << "    Min Distance Local: " << wt.minDistanceLocal_ << std::endl;
     os << "    Min Rank Glob: " << wt.minRankGlob_ << std::endl;
     return os;
 }
+
+
+
+// -------------------------------------------------------------------------------------
 
 }  // namespace wind_farm_plugin
