@@ -84,7 +84,7 @@ cd $builddir
 make test
 ```
 
-## License
+## Licence
 See [LICENSE](LICENSE)
 
 ## Copyright
