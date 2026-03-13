@@ -30,11 +30,11 @@ atlas::Field createUniform2DField(std::string name, double value) {
         fs = atlas::functionspace::StructuredColumns(grid);
     }
 
-    atlas::Field field = fs.createField<double>(atlas::option::name(name));
-    auto buff = atlas::array::make_view<double,1>(field);
+    atlas::Field field = fs.createField<double>(atlas::option::name(name) | atlas::option::levels(1));
+    auto buff = atlas::array::make_view<double, 2>(field);
 
     for (atlas::idx_t i_pt = 0; i_pt < fs.size(); i_pt++) {
-        buff(i_pt) = value;
+        buff(i_pt, 0) = value;
     }
 
     return field;

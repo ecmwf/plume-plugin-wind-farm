@@ -9,17 +9,12 @@
 
 add_subdirectory(data)
 
-
-# configure the test source file
-set(test_config_file ${CMAKE_CURRENT_BINARY_DIR}/data/test-plume-config.json)
-configure_file(${CMAKE_CURRENT_SOURCE_DIR}/test_wind_farm.cc.in ${CMAKE_CURRENT_BINARY_DIR}/test_wind_farm.cc @ONLY)
-
 ecbuild_add_test (
     TARGET plume_plugin_wind_farm_test_wind_farm
     SOURCES
         test_utils.h
         test_utils.cc
-        ${CMAKE_CURRENT_BINARY_DIR}/test_wind_farm.cc
+        test_wind_farm.cc
     INCLUDES
         $<BUILD_INTERFACE:${PROJECT_BINARY_DIR}/src>
         $<BUILD_INTERFACE:${PROJECT_BINARY_DIR}/tests>
@@ -29,6 +24,8 @@ ecbuild_add_test (
         eckit
         atlas
         wind_farm_plugin
+    ENVIRONMENT
+        PLUME_WIND_FARM_TEST_CONFIG=${CMAKE_CURRENT_BINARY_DIR}/data/test-plume-config.yml
 )
 
 ecbuild_add_test (
