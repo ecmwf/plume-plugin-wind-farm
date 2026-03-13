@@ -9,4 +9,4 @@
 
 
 set(wind_turbine_json ${CMAKE_CURRENT_SOURCE_DIR}/wind_turbines.json)
-configure_file(plume-config.json.in plume-config.json @ONLY)
+configure_file(plume-config.yml.in plume-config.yml @ONLY)

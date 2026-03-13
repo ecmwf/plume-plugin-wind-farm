@@ -18,7 +18,7 @@ set(CMAKE_CXX_STANDARD_REQUIRED ON)
 
 ecbuild_find_package( NAME eckit  VERSION  1.18.0 REQUIRED )
 ecbuild_find_package( NAME atlas  VERSION  0.36.0 REQUIRED )
-ecbuild_find_package( NAME plume  VERSION  0.2.0  REQUIRED )
+ecbuild_find_package( NAME plume  VERSION  0.5.0  REQUIRED )
 
 ## Plugins
 add_subdirectory(config)

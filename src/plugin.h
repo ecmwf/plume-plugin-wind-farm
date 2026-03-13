@@ -86,9 +86,7 @@ public:
      */
     plume::Protocol negotiate() override {
         plume::Protocol protocol;
-        protocol.requireInt("NSTEP");
-        protocol.requireAtlasField("100u");
-        protocol.requireAtlasField("100v");
+        protocol.require<int>("NSTEP");
         return protocol;
     }
 

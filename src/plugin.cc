@@ -41,8 +41,8 @@ WindFarmPluginCore::WindFarmPluginCore(const eckit::Configuration& conf) :
 
 void WindFarmPluginCore::setup() {
 
-    atlas::Field fieldU = modelData().getAtlasFieldShared("100u");
-    atlas::Field fieldV = modelData().getAtlasFieldShared("100v");
+    atlas::Field fieldU = modelData().getParam<atlas::Field>("u", config_.getString("wind_field_height"));
+    atlas::Field fieldV = modelData().getParam<atlas::Field>("v", config_.getString("wind_field_height"));
 
     // check that in the configuration, either "compute_power" or "export_wind_box" is set to true
     if (!config_.getBool("compute_power", true) && !config_.getBool("export_wind_box", false)) {
@@ -62,7 +62,12 @@ void WindFarmPluginCore::setup() {
 
 void WindFarmPluginCore::run() {
 
-    int timeStep = modelData().getInt("NSTEP");
+    int timeStep = modelData().getParam<int>("NSTEP");
+    if (!modelData().isUpdated("u", config_.getString("wind_field_height"))) {
+        // skip this step if wind fields are not updated, assumption: no update of "u" means no update of "v"
+        return;
+    }
+
     Log::info() << "Step: " << timeStep << ") running WindFarmPluginCore.." << std::endl;
 
     if (config_.getBool("compute_power", true)) {
