@@ -143,4 +143,11 @@ void exportWindPoints(const std::vector<WindPoint>& points, const std::string& f
 double linearInterpolate(double x, const std::vector<double>& x_vals, const std::vector<double>& y_vals);
 
 
+/**
+ * @brief export wind turbine powers to CSV file
+ */
+void exportWindTurbinePowers(const std::vector<LatLonValue>& powers, const std::string& filename);
+
+
+
 }  // namespace wind_farm_plugin

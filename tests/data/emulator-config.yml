@@ -1,0 +1,19 @@
+emulator:
+  n_steps: 5
+  grid_identifier: "N80"
+  vertical_levels: 5
+  fields:
+    u;hl;70:
+      levtype: "sfc"
+      apply:
+        random:
+          distribution: "uniform"
+          min: 10.0
+          max: 10.0
+    v;hl;70:
+      levtype: "sfc"
+      apply:
+        random:
+          distribution: "uniform"
+          min: 0.0
+          max: 0.0

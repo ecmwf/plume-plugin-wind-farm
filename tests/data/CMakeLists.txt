@@ -11,3 +11,4 @@
 set(test_wind_turbine_json ${CMAKE_CURRENT_SOURCE_DIR}/test_wind_turbines.json)
 configure_file(${CMAKE_CURRENT_SOURCE_DIR}/test-plume-config.yml.in 
                ${CMAKE_CURRENT_BINARY_DIR}/test-plume-config.yml @ONLY)
+

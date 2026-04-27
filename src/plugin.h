@@ -56,6 +56,11 @@ public:
     constexpr static const char* type() { return "WindFarmPlugin"; }
 
 private:
+
+    // helper function to assemble filename with step number
+    std::string assembleFilename(const std::string& prefix, int timeStep) const;
+
+private:
     // wind map
     std::unique_ptr<WindMap> windMap_;
 
@@ -67,6 +72,18 @@ private:
 
     // filename prefix for wind output files
     std::string windFilenamePrefix_;
+
+    // filename prefix for wind turbine power output files
+    std::string windTurbinePowerFilenamePrefix_;
+
+    // fllag for computing power
+    bool computePowerEnabled_;
+
+    // flag for exporting wind box
+    bool exportWindBoxEnabled_;
+
+    // flag for exporting wind turbine power
+    bool exportWtPowerEnabled_;
 
 };
 // ------------------------------------------------------

@@ -38,6 +38,24 @@ private:
 
 
 /**
+ * @brief A point with an associated value
+ *
+ */
+class LatLonValue : public LatLonPoint {
+
+public:
+    LatLonValue(double lat = 0.0, double lon = 0.0, double valueIn = 0.0) :
+        LatLonPoint(lat, lon), value_{valueIn} {}
+
+    double value() const { return value_; }
+    void setValue(double valueIn) { value_ = valueIn; }
+
+private:
+    double value_;
+};
+
+
+/**
  * @brief Associates a lat/lon point to wind velocity.
  * It is used to store the wind components (e.g. computed by the wind farm 
  * model) at specific locations and is not necessarily related to the grid points 

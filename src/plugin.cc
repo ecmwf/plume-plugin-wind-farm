@@ -10,9 +10,12 @@
  */
 
 #include <iomanip>
+#include <fstream>
 #include <iostream>
+#include <numeric>
 #include <sstream>
 #include <string>
+#include <vector>
 
 #include "eckit/mpi/Comm.h"
 
@@ -41,16 +44,26 @@ WindFarmPluginCore::WindFarmPluginCore(const eckit::Configuration& conf) :
 
 void WindFarmPluginCore::setup() {
 
+    computePowerEnabled_       = config_.getBool("compute_power", true);
+    exportWindBoxEnabled_      = config_.getBool("export_wind_box", false);
+    exportWtPowerEnabled_      = config_.getBool("export_wind_turbine_power", false);    
+
     atlas::Field fieldU = modelData().getParam<atlas::Field>("u", config_.getString("wind_field_height"));
     atlas::Field fieldV = modelData().getParam<atlas::Field>("v", config_.getString("wind_field_height"));
 
-    // check that in the configuration, either "compute_power" or "export_wind_box" is set to true
-    if (!config_.getBool("compute_power", true) && !config_.getBool("export_wind_box", false)) {
-        Log::warning() << "Neither 'compute_power' nor 'export_wind_box' is set to true!" << std::endl;
+    // check that in the configuration, at least one output option is enabled
+    if (!computePowerEnabled_ && !exportWindBoxEnabled_ && !exportWtPowerEnabled_) {
+        Log::warning()
+            << "None of 'compute_power', 'export_wind_box', or 'export_wind_turbine_power' is set to true!"
+            << std::endl;
     }
 
     // wind speed output filename prefix
     windFilenamePrefix_ = config_.getString("wind_box_filename_prefix", "wind_box_at_step_");
+
+    // wind turbine power output filename prefix
+    windTurbinePowerFilenamePrefix_ =
+        config_.getString("wind_turbine_power_filename_prefix", "wind_turbine_power_at_step_");
 
     // setup wind map
     windMap_ = std::make_unique<WindMap>(fieldU, fieldV);
@@ -62,32 +75,50 @@ void WindFarmPluginCore::setup() {
 
 void WindFarmPluginCore::run() {
 
+    // get current time step
     int timeStep = modelData().getParam<int>("NSTEP");
+    Log::info() << "Step: " << timeStep << ") running WindFarmPluginCore.." << std::endl;
+
+    // skip this step if wind fields are not updated, assumption: no update of "u" means no update of "v"
     if (!modelData().isUpdated("u", config_.getString("wind_field_height"))) {
-        // skip this step if wind fields are not updated, assumption: no update of "u" means no update of "v"
         return;
     }
 
-    Log::info() << "Step: " << timeStep << ") running WindFarmPluginCore.." << std::endl;
+    // Power output per turbine (used for computing total power and exporting, if enabled)
+    std::vector<LatLonValue> windTurbinePowers;
+    if (computePowerEnabled_ || exportWtPowerEnabled_) {
+        windTurbinePowers = windFarm_.computePowerPerTurbine(*windMap_);
+    }
 
-    if (config_.getBool("compute_power", true)) {
-        double power = windFarm_.computePower(*windMap_);
+    // Compute total power and print summary, if enabled
+    if (computePowerEnabled_) {
+        const double power = std::accumulate(windTurbinePowers.begin(), windTurbinePowers.end(), 0.0,
+                                             [](double sum, const LatLonValue& turbinePower) {
+                                                 return sum + turbinePower.value();
+                                             });
         Log::info() << " --->>> Power output: " << power << std::endl;
     }
 
-    if (config_.getBool("export_wind_box", false)) {
-        std::vector<WindPoint> windBoxPoints = windFarm_.computeWindBox(*windMap_);
-        
-        // append the step to the filename
-        std::ostringstream oss;
-        oss << std::setw(3) << std::setfill('0') << timeStep;
-        std::string filename = windFilenamePrefix_ + oss.str() + ".csv";
+    // Export wind turbine power, if enabled
+    if (exportWtPowerEnabled_ && !eckit::mpi::comm().rank()) {
+        std::string filename = assembleFilename(windTurbinePowerFilenamePrefix_, timeStep);
+        exportWindTurbinePowers(windTurbinePowers, filename);
+    }
 
-        // export the wind points from root rank)
+    // Export wind box, if enabled
+    if (exportWindBoxEnabled_) {
+        std::vector<WindPoint> windBoxPoints = windFarm_.computeWindBox(*windMap_);        
         if (!eckit::mpi::comm().rank()) {
+            std::string filename = assembleFilename(windFilenamePrefix_, timeStep);
             exportWindPoints(windBoxPoints, filename);
         }
     }
+}
+
+std::string WindFarmPluginCore::assembleFilename(const std::string& prefix, int timeStep) const {
+    std::ostringstream oss;
+    oss << prefix << std::setw(3) << std::setfill('0') << timeStep << ".csv";
+    return oss.str();
 }
 // ------------------------------------------------------
 

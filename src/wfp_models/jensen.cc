@@ -10,6 +10,7 @@
  */
 
 #include <fstream>
+#include <numeric>
 #include <vector>
 
 #include "eckit/config/Configuration.h"
@@ -34,6 +35,16 @@ JensenModel::JensenModel(const eckit::Configuration& conf) : WFPModel{conf}, kw_
 
 double JensenModel::computePower(const WindMap& wMap, const WindFarm& windFarm) const {
 
+    std::vector<LatLonValue> turbinePowers = computePowerByTurbine(wMap, windFarm);
+    return std::accumulate(turbinePowers.begin(), turbinePowers.end(), 0.0,
+                           [](double sum, const LatLonValue& turbinePower) {
+                               return sum + turbinePower.value();
+                           });
+}
+
+std::vector<LatLonValue> JensenModel::computePowerByTurbine(const WindMap& wMap,
+                                                             const WindFarm& windFarm) const {
+
     Log::debug() << " >>> Computing average wind speed in wind farm.." << std::endl;
 
     const std::vector<std::unique_ptr<WindTurbine>>& windTurbines = windFarm.windTurbines();
@@ -46,17 +57,30 @@ double JensenModel::computePower(const WindMap& wMap, const WindFarm& windFarm) 
     // calculate the wind at each turbine point
     std::vector<WindPoint> windPointsAtTurbines = computeWindAtPoints(wMap, windFarm, wtLatLons);
 
-    // local power at each turbine
-    double localPower = 0.0;
-    for (int i_wt = 0; i_wt < windPointsAtTurbines.size(); i_wt++) {
-        const WindPoint& wp = windPointsAtTurbines[i_wt];
-        localPower += windTurbines[i_wt]->computePower(wp.wind_u(), wp.wind_v());
+    const std::vector<std::unique_ptr<WindTurbine>>& globalTurbines = windFarm.windTurbinesGlobal();
+
+    std::vector<double> powersLocal(globalTurbines.size(), 0.0);
+    std::vector<double> powersGlobal(globalTurbines.size(), 0.0);
+    std::vector<LatLonValue> powersByTurbine(globalTurbines.size());
+
+    for (const auto& wt : globalTurbines) {
+        powersByTurbine[wt->ID()] = LatLonValue(wt->lat(), wt->lon(), 0.0);
     }
 
-    double globalPower{0};
-    eckit::mpi::comm().allReduce(localPower, globalPower, eckit::mpi::sum());
+    // local power at each turbine
+    for (size_t i_wt = 0; i_wt < windPointsAtTurbines.size(); i_wt++) {
+        const WindPoint& wp = windPointsAtTurbines[i_wt];
+        powersLocal[windTurbines[i_wt]->ID()] = windTurbines[i_wt]->computePower(wp.wind_u(), wp.wind_v());
+    }
 
-    return globalPower;
+    // reduce powers across ranks
+    eckit::mpi::comm().allReduce(powersLocal, powersGlobal, eckit::mpi::sum());
+
+    for (size_t i = 0; i < globalTurbines.size(); ++i) {
+        powersByTurbine[i].setValue(powersGlobal[i]);
+    }
+
+    return powersByTurbine;
 }
 
 
