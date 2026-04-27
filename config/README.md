@@ -21,18 +21,20 @@ plugins:
       wind_field_height: *wind_field_height
       compute_power: true
       export_wind_box: true
+      export_wind_turbine_power: false
       wind_turbines_filename: "<wind-turbines-configuration-filename>"
 ```
 
 The high level plugin configuration defines which wind farm model to run and what output is desired (power output and wind speed in a lat/lon box around the wind farm). The core configuration of the plugin has the following top-level keys:
 
-|         Parameter        |                Description               |
-|--------------------------|------------------------------------------|
-| wind_farm_model          | Wind farm model specific parameters      |
-| wind_field_height        | Height of the wind data from the model   |
-| compute_power            | Flag to compute power output             |
-| export_wind_box          | Flag to export wind speed in the box     |
-| wind_turbines_filename   | Name of the wind turbine config file     |
+|         Parameter          |                Description               |
+|----------------------------|------------------------------------------|
+| wind_farm_model            | Wind farm model specific parameters      |
+| wind_field_height          | Height of the wind data from the model   |
+| compute_power              | Flag to compute power output             |
+| export_wind_box            | Flag to export wind speed in the box     |
+| export_wind_turbine_power  | Flag to export per-turbine power in CSV  |
+| wind_turbines_filename     | Name of the wind turbine config file     |
 
 The example uses a YAML anchor to define the wind field height once and reuse it for both parameters. The anchor must be defined before any alias that references it.
 

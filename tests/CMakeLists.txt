@@ -51,3 +51,13 @@ ecbuild_add_test (
         eckit
         wind_farm_plugin
 )
+
+# test the wind-farm plugin with the emulator
+ecbuild_add_test(
+    COMMAND
+        nwp_emulator_run_dp.x
+    ENVIRONMENT
+        LD_LIBRARY_PATH=$<TARGET_FILE_DIR:wind_farm_plugin>:$ENV{LD_LIBRARY_PATH}
+    ARGS --config-src=${CMAKE_CURRENT_SOURCE_DIR}/data/emulator-config.yml
+         --plume-cfg=${CMAKE_CURRENT_BINARY_DIR}/data/test-plume-config.yml
+)

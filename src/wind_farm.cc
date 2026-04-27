@@ -134,6 +134,11 @@ double WindFarm::computePower(const WindMap& wMap) const {
     return wfpModel_->computePower(wMap, *this);
 }
 
+std::vector<LatLonValue> WindFarm::computePowerPerTurbine(const WindMap& wMap) const {
+    Log::info() << " ---> computing power by turbine.." << std::endl;
+    return wfpModel_->computePowerByTurbine(wMap, *this);
+}
+
 
 std::vector<WindPoint> WindFarm::computeWindBox(const WindMap& wMap) const {
     const std::vector<std::unique_ptr<LatLonPoint>>& BoxPoints = WindFarmBoxPoints();

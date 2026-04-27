@@ -9,9 +9,9 @@
  * nor does it submit to any jurisdiction.
  */
 
-#include "utils.h"
-
 #include "eckit/exception/Exceptions.h"
+
+#include "utils.h"
 
 
 namespace wind_farm_plugin {
@@ -90,6 +90,26 @@ double linearInterpolate(double x, const std::vector<double>& x_vals, const std:
     }
 
 }
+
+// export wind turbine powers to CSV file
+void exportWindTurbinePowers(const std::vector<LatLonValue>& powers, const std::string& filename) {
+
+    Log::info() << "Exporting wind turbine powers to " << filename << ", size: " << powers.size() << std::endl;
+
+    std::ofstream file(filename);
+    if (!file.is_open()) {
+        Log::error() << "Error opening file for wind turbine power export!" << std::endl;
+        return;
+    }
+
+    file << "lat,lon,power" << std::endl;
+    for (const auto& turbinePower : powers) {
+        file << turbinePower.lat() << "," << turbinePower.lon() << "," << turbinePower.value() << std::endl;
+    }
+
+    file.close();
+}
+
 
 
 }  // namespace wind_farm_plugin
