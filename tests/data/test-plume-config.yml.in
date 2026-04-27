@@ -13,6 +13,8 @@ plugins:
       wind_farm_model:
         name: jensen
         kw: 0.04
+      wind_field_height: *wind_field_height
       compute_power: true
       export_wind_box: true
+      export_wind_turbine_power: true
       wind_turbines_filename: "@test_wind_turbine_json@"

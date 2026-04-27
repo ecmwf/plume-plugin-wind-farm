@@ -56,6 +56,15 @@ public:
     constexpr static const char* type() { return "WindFarmPlugin"; }
 
 private:
+
+    // Assemble a filename with a given prefix and (optionally) time step
+    std::string assembleFilename(const std::string& prefix, std::optional<int> timeStep) const;
+
+    // When append mode is enabled, check whether the (single) wind turbine power
+    // output file already exists on disk.
+    bool windTurbinePowerAppendFileExists() const;
+
+private:
     // wind map
     std::unique_ptr<WindMap> windMap_;
 
@@ -67,6 +76,21 @@ private:
 
     // filename prefix for wind output files
     std::string windFilenamePrefix_;
+
+    // filename prefix for wind turbine power output files
+    std::string windTurbinePowerFilenamePrefix_;
+
+    // flag for computing power
+    bool computePowerEnabled_;
+
+    // flag for exporting wind box
+    bool exportWindBoxEnabled_;
+
+    // flag for exporting wind turbine power
+    bool exportWtPowerEnabled_;
+
+    // flag for appending wind turbine power to a single file (instead of per-step files)
+    bool exportWtPowerAppend_;
 
 };
 // ------------------------------------------------------

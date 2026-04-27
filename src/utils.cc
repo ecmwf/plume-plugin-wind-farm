@@ -9,9 +9,9 @@
  * nor does it submit to any jurisdiction.
  */
 
-#include "utils.h"
-
 #include "eckit/exception/Exceptions.h"
+
+#include "utils.h"
 
 
 namespace wind_farm_plugin {
@@ -46,8 +46,7 @@ void exportWindPoints(const std::vector<WindPoint>& points, const std::string& f
 
     std::ofstream file(filename);
     if (!file.is_open()) {
-        Log::error() << "Error opening file!" << std::endl;
-        return;
+        throw eckit::CantOpenFile( "Error opening file " + filename + " for writing", Here());
     }
 
     file << "lon,lat,vel" << std::endl;
@@ -55,7 +54,11 @@ void exportWindPoints(const std::vector<WindPoint>& points, const std::string& f
         file << p.point().lon() << "," << p.point().lat() << "," << p.wind_mag() << std::endl;
     }
 
+
     file.close();
+    if (file.fail()) {
+        throw eckit::CloseError("Error closing file " + filename, Here());
+    }
 }
 
 
@@ -90,6 +93,50 @@ double linearInterpolate(double x, const std::vector<double>& x_vals, const std:
     }
 
 }
+
+// export wind turbine powers to CSV file
+void exportWindTurbinePowers(const std::vector<LatLonValue>& powers, const std::string& filename,
+                             std::optional<int> step) {
+
+    Log::info() << "Exporting wind turbine powers to " << filename << ", size: " << powers.size()
+                << (step ? " (step " + std::to_string(*step) + ", append mode)" : "") << std::endl;
+
+    const bool appendMode = step.has_value();
+
+    // When appending, only write the header if the file does not already exist
+    bool writeHeader = true;
+    if (appendMode) {
+        std::ifstream existing(filename);
+        writeHeader = !existing.good();
+    }
+
+    std::ofstream file(filename, appendMode ? std::ios::app : std::ios::out);
+    if (!file.is_open()) {
+        throw eckit::CantOpenFile( "Error opening file " + filename + " for writing", Here());
+    }
+
+    if (writeHeader) {
+        if (appendMode) {
+            file << "step,lat,lon,power" << std::endl;
+        }
+        else {
+            file << "lat,lon,power" << std::endl;
+        }
+    }
+
+    for (const auto& turbinePower : powers) {
+        if (appendMode) {
+            file << *step << ",";
+        }
+        file << turbinePower.lat() << "," << turbinePower.lon() << "," << turbinePower.value() << std::endl;
+    }
+
+    file.close();
+    if (file.fail()) {
+        throw eckit::CloseError("Error closing file " + filename, Here());
+    }
+}
+
 
 
 }  // namespace wind_farm_plugin

@@ -13,6 +13,7 @@
 #include <cstdlib>
 #include <iostream>
 #include <memory>
+#include <numeric>
 #include <string>
 
 #include "eckit/config/LocalConfiguration.h"
@@ -102,8 +103,14 @@ CASE("test_compute_power_no_wake") {
 
     WindMap windMap(uField, vField);
     double power = windFarm.computePower(windMap);
+    std::vector<LatLonValue> powers = windFarm.computePowerByTurbine(windMap);
 
     EXPECT(power > 0.0);
+    EXPECT_EQUAL(powers.size(), windFarm.windTurbinesGlobal().size());
+    EXPECT(std::abs(std::accumulate(powers.begin(), powers.end(), 0.0,
+                                    [](double sum, const LatLonValue& turbinePower) {
+                                        return sum + turbinePower.value();
+                                    }) - power) < 1e-6);
 }
 
 CASE("test_compute_power_jensen") {
@@ -122,12 +129,18 @@ CASE("test_compute_power_jensen") {
     WindFarm jensenFarm(jensenConfig);
     setupWindFarm(jensenFarm, uField);
     double jensenPower = jensenFarm.computePower(windMap);
+    std::vector<LatLonValue> jensenPowers = jensenFarm.computePowerByTurbine(windMap);
 
     WindFarm noWakeFarm(noWakeConfig);
     setupWindFarm(noWakeFarm, uField);
     double noWakePower = noWakeFarm.computePower(windMap);
 
     EXPECT(jensenPower >= 0.0);
+    EXPECT_EQUAL(jensenPowers.size(), jensenFarm.windTurbinesGlobal().size());
+    EXPECT(std::abs(std::accumulate(jensenPowers.begin(), jensenPowers.end(), 0.0,
+                                    [](double sum, const LatLonValue& turbinePower) {
+                                        return sum + turbinePower.value();
+                                    }) - jensenPower) < 1e-6);
     EXPECT(jensenPower <= noWakePower + 1e-6);
 }
 

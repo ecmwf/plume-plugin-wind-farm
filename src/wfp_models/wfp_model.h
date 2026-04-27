@@ -41,6 +41,16 @@ public:
      */
     virtual double computePower(const WindMap& wMap, const WindFarm& windFarm) const = 0;
 
+    /**
+     * @brief wind farm parametrization model to compute power output per wind turbine
+     *
+     * @param wMap
+     * @param windFarm
+     * @return std::vector<LatLonValue>
+     */
+    virtual std::vector<LatLonValue> computePowerByTurbine(const WindMap& wMap,
+                                                            const WindFarm& windFarm) const = 0;
+
 
     /**
      * @brief Computes wind speed at given points

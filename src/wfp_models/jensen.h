@@ -34,6 +34,9 @@ public:
      */
     double computePower(const WindMap& wMap, const WindFarm& windFarm) const override;
 
+    std::vector<LatLonValue> computePowerByTurbine(const WindMap& wMap,
+                                                   const WindFarm& windFarm) const override;
+
     /**
      * @brief Computes wind speed at given points
      *

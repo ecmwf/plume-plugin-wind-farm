@@ -68,6 +68,11 @@ void WindFarm::setupWindTurbines(atlas::Field lonLatField) {
     wtConfig_ = eckit::LocalConfiguration(yamlConfig);
     auto wts  = wtConfig_.getSubConfigurations("wind_turbines");
 
+    // check that there is at least one wind turbine defined
+    if (wts.empty()) {
+        throw eckit::BadParameter("No wind turbines defined in the configuration", Here());
+    }
+
     // wind turbine defaults
     auto turbineDefaults = wtConfig_.getSubConfiguration("wind_turbine_defaults");
 
@@ -134,6 +139,11 @@ double WindFarm::computePower(const WindMap& wMap) const {
     return wfpModel_->computePower(wMap, *this);
 }
 
+std::vector<LatLonValue> WindFarm::computePowerByTurbine(const WindMap& wMap) const {
+    Log::info() << " ---> computing power by turbine.." << std::endl;
+    return wfpModel_->computePowerByTurbine(wMap, *this);
+}
+
 
 std::vector<WindPoint> WindFarm::computeWindBox(const WindMap& wMap) const {
     const std::vector<std::unique_ptr<LatLonPoint>>& BoxPoints = WindFarmBoxPoints();
@@ -170,11 +180,12 @@ void WindFarm::calculateAvgLatLons() {
     auto sumLon = [](double total, const std::unique_ptr<WindTurbine>& t) { return total + t->lon(); };
 
     // local
-    double AvgLat;
-    double AvgLon;
     if (!windTurbines_.empty()) {
-        AvgLat = std::accumulate(windTurbines_.begin(), windTurbines_.end(), 0.0, sumLat) / windTurbines_.size();
-        AvgLon = std::accumulate(windTurbines_.begin(), windTurbines_.end(), 0.0, sumLon) / windTurbines_.size();
+        double AvgLat = std::accumulate(windTurbines_.begin(), windTurbines_.end(), 0.0, sumLat) / windTurbines_.size();
+        double AvgLon = std::accumulate(windTurbines_.begin(), windTurbines_.end(), 0.0, sumLon) / windTurbines_.size();
+        AvgPoint_ = LatLonPoint(AvgLat, AvgLon);
+    } else {
+        AvgPoint_ = std::nullopt;
     }
 
     // global
@@ -187,7 +198,6 @@ void WindFarm::calculateAvgLatLons() {
                      windTurbinesGlobal_.size();
     }
 
-    AvgPoint_     = LatLonPoint(AvgLat, AvgLon);
     AvgPointGlob_ = LatLonPoint(AvgLatGlob, AvgLonGlob);
 }
 

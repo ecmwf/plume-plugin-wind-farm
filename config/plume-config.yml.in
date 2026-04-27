@@ -16,4 +16,5 @@ plugins:
       wind_field_height: *wind_field_height
       compute_power: true
       export_wind_box: true
+      export_wind_turbine_power: false
       wind_turbines_filename: "@wind_turbine_json@"

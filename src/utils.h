@@ -14,6 +14,7 @@
 #include <cmath>
 #include <fstream>
 #include <iostream>
+#include <optional>
 #include <utility>
 #include <vector>
 
@@ -141,6 +142,19 @@ void exportWindPoints(const std::vector<WindPoint>& points, const std::string& f
  * @return double
  */
 double linearInterpolate(double x, const std::vector<double>& x_vals, const std::vector<double>& y_vals);
+
+
+/**
+ * @brief export wind turbine powers to CSV file
+ *
+ * If @p step is provided, appends the rows to the file using the
+ * format `step,lat,lon,power` (writing the header only when the file
+ * does not already exist). Otherwise, overwrites the file using the
+ * format `lat,lon,power`.
+ */
+void exportWindTurbinePowers(const std::vector<LatLonValue>& powers, const std::string& filename,
+                             std::optional<int> step = std::nullopt);
+
 
 
 }  // namespace wind_farm_plugin

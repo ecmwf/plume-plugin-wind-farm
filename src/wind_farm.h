@@ -12,6 +12,7 @@
 #pragma once
 
 #include <memory>
+#include <optional>
 #include <vector>
 
 #include "eckit/config/Configuration.h"
@@ -56,6 +57,14 @@ public:
     double computePower(const WindMap& wMap) const;
 
     /**
+     * @brief Compute power output for each wind turbine (global ordering)
+     *
+     * @param wMap
+     * @return std::vector<LatLonValue>
+     */
+    std::vector<LatLonValue> computePowerByTurbine(const WindMap& wMap) const;
+
+    /**
      * @brief wind turbines (local)
      *
      * @return const std::vector<WindTurbine>&
@@ -72,9 +81,9 @@ public:
     /**
      * @brief Average Lat/Lon
      *
-     * @return std::pair<double,double>
+     * @return std::optional<LatLonPoint>
      */
-    const LatLonPoint& averageLatLon() const { return AvgPoint_; }
+    const std::optional<LatLonPoint>& averageLatLon() const { return AvgPoint_; }
 
     /**
      * @brief Average Lat/Lon (global)
@@ -136,7 +145,7 @@ private:
     std::vector<std::unique_ptr<LatLonPoint>> boxPoints_;
 
     // average wind farm lat/lon (local)
-    LatLonPoint AvgPoint_{-999.999, -999.999};
+    std::optional<LatLonPoint> AvgPoint_;
 
     // average wind farm lat/lon (global)
     LatLonPoint AvgPointGlob_{-999.999, -999.999};
