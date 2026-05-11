@@ -76,7 +76,7 @@ private:
     // filename prefix for wind turbine power output files
     std::string windTurbinePowerFilenamePrefix_;
 
-    // fllag for computing power
+    // flag for computing power
     bool computePowerEnabled_;
 
     // flag for exporting wind box
