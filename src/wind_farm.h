@@ -59,7 +59,7 @@ public:
      * @brief Compute power output for each wind turbine (global ordering)
      *
      * @param wMap
-    * @return std::vector<LatLonValue>
+     * @return std::vector<LatLonValue>
      */
     std::vector<LatLonValue> computePowerPerTurbine(const WindMap& wMap) const;
 
