@@ -103,7 +103,7 @@ CASE("test_compute_power_no_wake") {
 
     WindMap windMap(uField, vField);
     double power = windFarm.computePower(windMap);
-    std::vector<LatLonValue> powers = windFarm.computePowerPerTurbine(windMap);
+    std::vector<LatLonValue> powers = windFarm.computePowerByTurbine(windMap);
 
     EXPECT(power > 0.0);
     EXPECT_EQUAL(powers.size(), windFarm.windTurbinesGlobal().size());
@@ -129,7 +129,7 @@ CASE("test_compute_power_jensen") {
     WindFarm jensenFarm(jensenConfig);
     setupWindFarm(jensenFarm, uField);
     double jensenPower = jensenFarm.computePower(windMap);
-    std::vector<LatLonValue> jensenPowers = jensenFarm.computePowerPerTurbine(windMap);
+    std::vector<LatLonValue> jensenPowers = jensenFarm.computePowerByTurbine(windMap);
 
     WindFarm noWakeFarm(noWakeConfig);
     setupWindFarm(noWakeFarm, uField);

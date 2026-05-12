@@ -96,7 +96,7 @@ void WindFarmPluginCore::run() {
     // Power output per turbine (used for computing total power and exporting, if enabled)
     std::vector<LatLonValue> windTurbinePowers;
     if (computePowerEnabled_ || exportWtPowerEnabled_) {
-        windTurbinePowers = windFarm_.computePowerPerTurbine(*windMap_);
+        windTurbinePowers = windFarm_.computePowerByTurbine(*windMap_);
     }
 
     // Compute total power and print summary, if enabled
