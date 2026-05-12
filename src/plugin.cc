@@ -10,7 +10,6 @@
  */
 
 #include <iomanip>
-#include <fstream>
 #include <iostream>
 #include <numeric>
 #include <sstream>
