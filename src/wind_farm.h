@@ -61,7 +61,7 @@ public:
      * @param wMap
      * @return std::vector<LatLonValue>
      */
-    std::vector<LatLonValue> computePowerPerTurbine(const WindMap& wMap) const;
+    std::vector<LatLonValue> computePowerByTurbine(const WindMap& wMap) const;
 
     /**
      * @brief wind turbines (local)
