@@ -180,11 +180,12 @@ void WindFarm::calculateAvgLatLons() {
     auto sumLon = [](double total, const std::unique_ptr<WindTurbine>& t) { return total + t->lon(); };
 
     // local
-    double AvgLat;
-    double AvgLon;
     if (!windTurbines_.empty()) {
-        AvgLat = std::accumulate(windTurbines_.begin(), windTurbines_.end(), 0.0, sumLat) / windTurbines_.size();
-        AvgLon = std::accumulate(windTurbines_.begin(), windTurbines_.end(), 0.0, sumLon) / windTurbines_.size();
+        double AvgLat = std::accumulate(windTurbines_.begin(), windTurbines_.end(), 0.0, sumLat) / windTurbines_.size();
+        double AvgLon = std::accumulate(windTurbines_.begin(), windTurbines_.end(), 0.0, sumLon) / windTurbines_.size();
+        AvgPoint_ = LatLonPoint(AvgLat, AvgLon);
+    } else {
+        AvgPoint_ = std::nullopt;
     }
 
     // global
@@ -197,7 +198,6 @@ void WindFarm::calculateAvgLatLons() {
                      windTurbinesGlobal_.size();
     }
 
-    AvgPoint_     = LatLonPoint(AvgLat, AvgLon);
     AvgPointGlob_ = LatLonPoint(AvgLatGlob, AvgLonGlob);
 }
 
