@@ -68,6 +68,11 @@ void WindFarm::setupWindTurbines(atlas::Field lonLatField) {
     wtConfig_ = eckit::LocalConfiguration(yamlConfig);
     auto wts  = wtConfig_.getSubConfigurations("wind_turbines");
 
+    // check that there is at least one wind turbine defined
+    if (wts.empty()) {
+        throw eckit::BadParameter("No wind turbines defined in the configuration", Here());
+    }
+
     // wind turbine defaults
     auto turbineDefaults = wtConfig_.getSubConfiguration("wind_turbine_defaults");
 
