@@ -46,8 +46,7 @@ void exportWindPoints(const std::vector<WindPoint>& points, const std::string& f
 
     std::ofstream file(filename);
     if (!file.is_open()) {
-        Log::error() << "Error opening file!" << std::endl;
-        return;
+        throw eckit::CantOpenFile( "Error opening file " + filename + " for writing", Here());
     }
 
     file << "lon,lat,vel" << std::endl;
@@ -55,7 +54,11 @@ void exportWindPoints(const std::vector<WindPoint>& points, const std::string& f
         file << p.point().lon() << "," << p.point().lat() << "," << p.wind_mag() << std::endl;
     }
 
+
     file.close();
+    if (file.fail()) {
+        throw eckit::CloseError("Error closing file " + filename, Here());
+    }
 }
 
 
@@ -109,8 +112,7 @@ void exportWindTurbinePowers(const std::vector<LatLonValue>& powers, const std::
 
     std::ofstream file(filename, appendMode ? std::ios::app : std::ios::out);
     if (!file.is_open()) {
-        Log::error() << "Error opening file for wind turbine power export!" << std::endl;
-        return;
+        throw eckit::CantOpenFile( "Error opening file " + filename + " for writing", Here());
     }
 
     if (writeHeader) {
@@ -130,6 +132,9 @@ void exportWindTurbinePowers(const std::vector<LatLonValue>& powers, const std::
     }
 
     file.close();
+    if (file.fail()) {
+        throw eckit::CloseError("Error closing file " + filename, Here());
+    }
 }
 
 
