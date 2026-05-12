@@ -11,6 +11,7 @@
 
 #include <iomanip>
 #include <iostream>
+#include <fstream>
 #include <numeric>
 #include <sstream>
 #include <string>
@@ -43,9 +44,16 @@ WindFarmPluginCore::WindFarmPluginCore(const eckit::Configuration& conf) :
 
 void WindFarmPluginCore::setup() {
 
-    computePowerEnabled_       = config_.getBool("compute_power", true);
-    exportWindBoxEnabled_      = config_.getBool("export_wind_box", false);
-    exportWtPowerEnabled_      = config_.getBool("export_wind_turbine_power", false);    
+    computePowerEnabled_              = config_.getBool("compute_power", true);
+
+    // wind speed output
+    exportWindBoxEnabled_             = config_.getBool("export_wind_box", false);
+    windFilenamePrefix_               = config_.getString("wind_box_filename_prefix", "wind_box");
+
+    // wind turbine power output
+    exportWtPowerEnabled_             = config_.getBool("export_wind_turbine_power", false);
+    exportWtPowerAppend_              = config_.getBool("export_wind_turbine_append", true);
+    windTurbinePowerFilenamePrefix_   = config_.getString("wind_turbine_power_filename_prefix", "wind_turbine_power");
 
     atlas::Field fieldU = modelData().getParam<atlas::Field>("u", config_.getString("wind_field_height"));
     atlas::Field fieldV = modelData().getParam<atlas::Field>("v", config_.getString("wind_field_height"));
@@ -57,18 +65,20 @@ void WindFarmPluginCore::setup() {
             << std::endl;
     }
 
-    // wind speed output filename prefix
-    windFilenamePrefix_ = config_.getString("wind_box_filename_prefix", "wind_box_at_step_");
-
-    // wind turbine power output filename prefix
-    windTurbinePowerFilenamePrefix_ =
-        config_.getString("wind_turbine_power_filename_prefix", "wind_turbine_power_at_step_");
-
     // setup wind map
     windMap_ = std::make_unique<WindMap>(fieldU, fieldV);
 
     // setup wind turbines
     windFarm_.setupWindTurbines(windMap_->lonlat());
+
+    // When append mode is enabled, warn the user if the target file already exists,
+    // since new rows will be appended to pre-existing content.
+    if (exportWtPowerEnabled_ && exportWtPowerAppend_ && !eckit::mpi::comm().rank()
+        && windTurbinePowerAppendFileExists()) {
+        Log::warning() << "WARNING: Wind turbine power output file '"
+                       << assembleFilename(windTurbinePowerFilenamePrefix_, std::nullopt)
+                       << "' already exists! - new rows will be appended to it." << std::endl;
+    }
 };
 
 
@@ -100,8 +110,15 @@ void WindFarmPluginCore::run() {
 
     // Export wind turbine power, if enabled
     if (exportWtPowerEnabled_ && !eckit::mpi::comm().rank()) {
-        std::string filename = assembleFilename(windTurbinePowerFilenamePrefix_, timeStep);
-        exportWindTurbinePowers(windTurbinePowers, filename);
+        if (exportWtPowerAppend_) {
+            // Append all steps to a single file: <prefix>.csv
+            std::string filename = assembleFilename(windTurbinePowerFilenamePrefix_, std::nullopt);
+            exportWindTurbinePowers(windTurbinePowers, filename, timeStep);
+        }
+        else {
+            std::string filename = assembleFilename(windTurbinePowerFilenamePrefix_, timeStep);
+            exportWindTurbinePowers(windTurbinePowers, filename);
+        }
     }
 
     // Export wind box, if enabled
@@ -114,10 +131,23 @@ void WindFarmPluginCore::run() {
     }
 }
 
-std::string WindFarmPluginCore::assembleFilename(const std::string& prefix, int timeStep) const {
+// Assemble a filename with a given prefix and (optionally) time step
+std::string WindFarmPluginCore::assembleFilename(const std::string& prefix, std::optional<int> timeStep) const {
     std::ostringstream oss;
-    oss << prefix << std::setw(3) << std::setfill('0') << timeStep << ".csv";
+    if (timeStep) {
+        oss << prefix << "_step_" << std::setw(6) << std::setfill('0') << *timeStep << ".csv";
+    } else {
+        oss << prefix << ".csv";
+    }
     return oss.str();
+}
+
+// Check whether the (single) wind turbine power output file used in append mode
+// already exists on disk.
+bool WindFarmPluginCore::windTurbinePowerAppendFileExists() const {
+    const std::string filename = assembleFilename(windTurbinePowerFilenamePrefix_, std::nullopt);
+    std::ifstream f(filename);
+    return f.good();
 }
 // ------------------------------------------------------
 

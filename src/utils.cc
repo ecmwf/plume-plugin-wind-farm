@@ -92,18 +92,40 @@ double linearInterpolate(double x, const std::vector<double>& x_vals, const std:
 }
 
 // export wind turbine powers to CSV file
-void exportWindTurbinePowers(const std::vector<LatLonValue>& powers, const std::string& filename) {
+void exportWindTurbinePowers(const std::vector<LatLonValue>& powers, const std::string& filename,
+                             std::optional<int> step) {
 
-    Log::info() << "Exporting wind turbine powers to " << filename << ", size: " << powers.size() << std::endl;
+    Log::info() << "Exporting wind turbine powers to " << filename << ", size: " << powers.size()
+                << (step ? " (step " + std::to_string(*step) + ", append mode)" : "") << std::endl;
 
-    std::ofstream file(filename);
+    const bool appendMode = step.has_value();
+
+    // When appending, only write the header if the file does not already exist
+    bool writeHeader = true;
+    if (appendMode) {
+        std::ifstream existing(filename);
+        writeHeader = !existing.good();
+    }
+
+    std::ofstream file(filename, appendMode ? std::ios::app : std::ios::out);
     if (!file.is_open()) {
         Log::error() << "Error opening file for wind turbine power export!" << std::endl;
         return;
     }
 
-    file << "lat,lon,power" << std::endl;
+    if (writeHeader) {
+        if (appendMode) {
+            file << "step,lat,lon,power" << std::endl;
+        }
+        else {
+            file << "lat,lon,power" << std::endl;
+        }
+    }
+
     for (const auto& turbinePower : powers) {
+        if (appendMode) {
+            file << *step << ",";
+        }
         file << turbinePower.lat() << "," << turbinePower.lon() << "," << turbinePower.value() << std::endl;
     }
 

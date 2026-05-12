@@ -57,8 +57,12 @@ public:
 
 private:
 
-    // helper function to assemble filename with step number
-    std::string assembleFilename(const std::string& prefix, int timeStep) const;
+    // Assemble a filename with a given prefix and (optionally) time step
+    std::string assembleFilename(const std::string& prefix, std::optional<int> timeStep) const;
+
+    // When append mode is enabled, check whether the (single) wind turbine power
+    // output file already exists on disk.
+    bool windTurbinePowerAppendFileExists() const;
 
 private:
     // wind map
@@ -84,6 +88,9 @@ private:
 
     // flag for exporting wind turbine power
     bool exportWtPowerEnabled_;
+
+    // flag for appending wind turbine power to a single file (instead of per-step files)
+    bool exportWtPowerAppend_;
 
 };
 // ------------------------------------------------------
