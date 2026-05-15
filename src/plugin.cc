@@ -84,14 +84,14 @@ void WindFarmPluginCore::setup() {
 
 void WindFarmPluginCore::run() {
 
-    // get current time step
-    int timeStep = modelData().getParam<int>("NSTEP");
-    Log::info() << "Step: " << timeStep << ") running WindFarmPluginCore.." << std::endl;
-
     // skip this step if wind fields are not updated, assumption: no update of "u" means no update of "v"
     if (!modelData().isUpdated("u", config_.getString("wind_field_height"))) {
         return;
     }
+
+    // get current time step
+    int timeStep = modelData().getParam<int>("NSTEP");
+    Log::info() << "Step: " << timeStep << ") running WindFarmPluginCore.." << std::endl;
 
     // Power output per turbine (used for computing total power and exporting, if enabled)
     std::vector<LatLonValue> windTurbinePowers;
