@@ -1,19 +1,10 @@
 plugins:
   - name: WindFarmPlugin
     lib: wind_farm_plugin
-    parameters:
-      - 
-        - name: "u"
-          type: "ATLAS_FIELD"
-          height: &wind_field_height 70
-        - name: "v"
-          type: "ATLAS_FIELD"
-          height: *wind_field_height
     core-config:
       wind_farm_model:
         name: jensen
         kw: 0.04
-      wind_field_height: *wind_field_height
       compute_power: true
       export_wind_box: true
       export_wind_turbine_power: false

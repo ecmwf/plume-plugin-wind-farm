@@ -14,6 +14,8 @@
 #include <iostream>
 #include <string>
 
+#include "atlas/field/Field.h"
+
 #include "plume/Plugin.h"
 #include "plume/PluginCore.h"
 
@@ -111,6 +113,8 @@ public:
     plume::Protocol negotiate() override {
         plume::Protocol protocol;
         protocol.require<int>("NSTEP");
+        protocol.require<atlas::Field>("100u");
+        protocol.require<atlas::Field>("100v");
         return protocol;
     }
 

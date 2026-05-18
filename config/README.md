@@ -6,19 +6,10 @@ This directory contains an example of the plugin configuration file.
 plugins:
   - name: WindFarmPlugin
     lib: wind_farm_plugin
-    parameters:
-      -
-        - name: "u"
-          type: "ATLAS_FIELD"
-          height: &wind_field_height 70
-        - name: "v"
-          type: "ATLAS_FIELD"
-          height: *wind_field_height
     core-config:
       wind_farm_model:
         name: jensen
         kw: 0.04
-      wind_field_height: *wind_field_height
       compute_power: true
       export_wind_box: true
       export_wind_turbine_power: false
@@ -30,20 +21,14 @@ The high level plugin configuration defines which wind farm model to run and wha
 |         Parameter          |                Description               |
 |----------------------------|------------------------------------------|
 | wind_farm_model            | Wind farm model specific parameters      |
-| wind_field_height          | Height of the wind data from the model   |
 | compute_power              | Flag to compute power output             |
 | export_wind_box            | Flag to export wind speed in the box     |
 | export_wind_turbine_power  | Flag to export per-turbine power in CSV  |
 | wind_turbines_filename     | Name of the wind turbine config file     |
 
-The example uses a YAML anchor to define the wind field height once and reuse it for both parameters. The anchor must be defined before any alias that references it.
 
 The key ```wind_turbines_filename``` is the name of a separate JSON file that defines wind turbine parameters (example below). The example provided contains the coordinates of a dummy wind farm with a matrix of 10x10 wind turbines around a lat/lon point at approximately [55.0&deg;, 7.0&deg;]
 
-> [!NOTE]
-> The hub height defined in the wind turbines file is not used to select the wind field height. 
-> The wind field height exposed by Plume comes from the plugin configuration (the `height` values in `parameters`).
-> It is the user's responsibility to make sure those heights are set to a sensible value.
 
 ```json
 {

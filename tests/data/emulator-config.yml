@@ -3,14 +3,14 @@ emulator:
   grid_identifier: "N80"
   vertical_levels: 5
   fields:
-    u;hl;70:
+    100u:
       levtype: "sfc"
       apply:
         random:
           distribution: "uniform"
           min: 10.0
           max: 10.0
-    v;hl;70:
+    100v:
       levtype: "sfc"
       apply:
         random:
