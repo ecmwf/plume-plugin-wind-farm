@@ -33,6 +33,26 @@ using atlas::Log;
 
 namespace wind_farm_plugin {
 
+namespace {
+
+void appendInflowCsvRow(const std::string& filename, int step, double u, double v) {
+    const bool fileExists = static_cast<bool>(std::ifstream(filename));
+
+    std::ofstream out(filename, std::ios::app);
+    if (!out) {
+        Log::warning() << "WARNING: could not open inflow output file '" << filename << "' for append."
+                       << std::endl;
+        return;
+    }
+
+    if (!fileExists) {
+        out << "step,u,v\n";
+    }
+    out << step << "," << u << "," << v << "\n";
+}
+
+}  // namespace
+
 
 // ----------------- WindFarmPluginCore ------------------
 static plume::PluginCoreBuilder<WindFarmPluginCore> WindFarmPluginCoreBuilder;
@@ -98,6 +118,7 @@ void WindFarmPluginCore::run() {
     if (computePowerEnabled_ || exportWtPowerEnabled_) {
         windTurbinePowers = windFarm_.computePowerByTurbine(*windMap_);
     }
+    const auto avgWind = windFarm_.computeAvgWindSpeed(*windMap_);
 
     // Compute total power and print summary, if enabled
     if (computePowerEnabled_) {
@@ -105,7 +126,13 @@ void WindFarmPluginCore::run() {
                                              [](double sum, const LatLonValue& turbinePower) {
                                                  return sum + turbinePower.value();
                                              });
-        Log::info() << " --->>> Power output: " << power << std::endl;
+        // /!\ Note: this does not apply when inflow uses grid-point wind speed instead of wind-farm spatial average.
+        Log::info() << " --->>> Inflow wind components: u=" << avgWind.first
+                    << " m/s, v=" << avgWind.second << " m/s, Power output: " << power << std::endl;
+    }
+    // One-off inflow export: append all steps to a single CSV file.
+    if (!eckit::mpi::comm().rank()) {
+        appendInflowCsvRow("inflow.csv", timeStep, avgWind.first, avgWind.second);
     }
 
     // Export wind turbine power, if enabled
