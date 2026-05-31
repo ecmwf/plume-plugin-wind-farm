@@ -7,8 +7,22 @@
 # granted to it by virtue of its status as an intergovernmental organisation
 # nor does it submit to any jurisdiction.
 
+# plume-config and wind-farm layout file (native format)
+# set(plume_config_native_yml ${CMAKE_CURRENT_SOURCE_DIR}/plume-config-native.yml)
+set(native_dummy_wind_farm_yml ${CMAKE_CURRENT_SOURCE_DIR}/native_dummy_windfarm.yml)
 
-set(test_wind_turbine_json ${CMAKE_CURRENT_SOURCE_DIR}/test_wind_turbines.json)
-configure_file(${CMAKE_CURRENT_SOURCE_DIR}/test-plume-config.yml.in 
-               ${CMAKE_CURRENT_BINARY_DIR}/test-plume-config.yml @ONLY)
+# files for windio format
+# set(plume_config_windio_yml ${CMAKE_CURRENT_SOURCE_DIR}/plume-config-windio.yml)
+set(windio_dummy_wind_farm_yml ${CMAKE_CURRENT_BINARY_DIR}/windio_dummy_windfarm.yml)
+set(windio_dummy_turbine_yml ${CMAKE_CURRENT_SOURCE_DIR}/windio_dummy_turbine.yml)
+
+# configure files for tests
+configure_file(${CMAKE_CURRENT_SOURCE_DIR}/plume-config-native.yml.in
+               ${CMAKE_CURRENT_BINARY_DIR}/plume-config-native.yml @ONLY)
+
+configure_file(${CMAKE_CURRENT_SOURCE_DIR}/plume-config-windio.yml.in
+               ${CMAKE_CURRENT_BINARY_DIR}/plume-config-windio.yml @ONLY)
+
+configure_file(${CMAKE_CURRENT_SOURCE_DIR}/windio_dummy_windfarm.yml.in
+               ${CMAKE_CURRENT_BINARY_DIR}/windio_dummy_windfarm.yml @ONLY)
 

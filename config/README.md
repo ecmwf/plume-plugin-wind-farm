@@ -22,71 +22,69 @@ plugins:
       compute_power: true
       export_wind_box: true
       export_wind_turbine_power: false
+      wind_farm_box:
+        lon_min: 6.900
+        lat_min: 54.900
+        lon_max: 7.100
+        lat_max: 55.100
+        n_lon: 100
+        n_lat: 100
       wind_turbines_filename: "<wind-turbines-configuration-filename>"
 ```
 
 The high level plugin configuration defines which wind farm model to run and what output is desired (power output and wind speed in a lat/lon box around the wind farm). The core configuration of the plugin has the following top-level keys:
 
-|         Parameter          |                Description               |
-|----------------------------|------------------------------------------|
-| wind_farm_model            | Wind farm model specific parameters      |
-| wind_field_height          | Height of the wind data from the model   |
-| compute_power              | Flag to compute power output             |
-| export_wind_box            | Flag to export wind speed in the box     |
-| export_wind_turbine_power  | Flag to export per-turbine power in CSV  |
-| wind_turbines_filename     | Name of the wind turbine config file     |
+|         Parameter          |                Description                 |
+|----------------------------|--------------------------------------------|
+| wind_farm_model            | Wind farm model specific parameters        |
+| wind_field_height          | Height of the wind data from the model     |
+| compute_power              | Flag to compute power output               |
+| export_wind_box            | Flag to export wind speed in the box       |
+| export_wind_turbine_power  | Flag to export per-turbine power in CSV    |
+| wind_farm_box              | Lat/Lon box where wind values are exported |
+| wind_turbines_filename     | Name of the wind turbine config file       |
 
 The example uses a YAML anchor to define the wind field height once and reuse it for both parameters. The anchor must be defined before any alias that references it.
 
-The key ```wind_turbines_filename``` is the name of a separate JSON file that defines wind turbine parameters (example below). The example provided contains the coordinates of a dummy wind farm with a matrix of 10x10 wind turbines around a lat/lon point at approximately [55.0&deg;, 7.0&deg;]
+The key ```wind_turbines_filename``` is the name of a separate YAML file that defines wind turbine parameters (example below). The example provided contains the coordinates of a dummy wind farm with a matrix of 10x10 wind turbines around a lat/lon point at approximately [55.0&deg;, 7.0&deg;]
+
+If `config_format` is set to "windio", the wind-farm and wind turbine files can be written in WindIO format. Note that the support for windIO format is currently limited to single wind-farm and single wind-turbine type (see the config examples under the tests directory).
 
 > [!NOTE]
 > The hub height defined in the wind turbines file is not used to select the wind field height. 
 > The wind field height exposed by Plume comes from the plugin configuration (the `height` values in `parameters`).
 > It is the user's responsibility to make sure those heights are set to a sensible value.
 
-```json
-{
-    "wind_farm_box": {
-        "lon_min": 6.900,
-        "lat_min": 54.900,
-        "lon_max": 7.100,
-        "lat_max": 55.100,
-        "n_lon": 100,
-        "n_lat": 100
-    },
-    "wind_turbine_defaults" : {
-        "hub_height": 70.0,
-        "radius": 40.0,
-        "power": {
-            "type": "constant",
-            "is_coefficient": true,
-            "value": 0.38,
-            "cutin_wind_speed": 0.2,
-            "cutout_wind_speed": 25.0
-        },
-        "thrust": {
-            "type": "constant",
-            "is_coefficient": true,
-            "value": 0.5,
-            "cutin_wind_speed": 0.2,
-            "cutout_wind_speed": 25.0
-        },
-        "rho_hub": 1.25
-    },
-    "wind_turbines": [
-        {"lat": 54.9550, "lon": 6.9550},
-        {"lat": 54.9550, "lon": 6.9650},
-        {"lat": 54.9550, "lon": 6.9750}
-    ]
-}
+```yaml
+wind_turbine_defaults:
+  hub_height: 70.0
+  radius: 40.0
+  power:
+    type: constant
+    is_coefficient: true
+    value: 0.38
+    cutin_wind_speed: 0.2
+    cutout_wind_speed: 25.0
+  thrust:
+    type: constant
+    is_coefficient: true
+    value: 0.5
+    cutin_wind_speed: 0.2
+    cutout_wind_speed: 25.0
+  rho_hub: 1.25
+wind_turbines:
+  - lat: 54.9550
+    lon: 6.9550
+  - lat: 54.9550
+    lon: 6.9650
+  - lat: 54.9550
+    lon: 6.9750
 ```
 
 The top level parameters are described in the following table. Note that in principle, each turbine can override any default wind turbine parameter, to be able to simulate cases of wind farms that include wind turbines of different type. 
 
 |         Parameter        |                  Description                |
 |--------------------------|---------------------------------------------|
-| wind_farm_box            | Lat/Lon box where wind values are exported  |
 | wind_turbine_defaults    | Default wind turbine parameters             |
 | wind_turbines            | Coordinates of wind turbines                |
 

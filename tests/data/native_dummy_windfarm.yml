@@ -1,0 +1,53 @@
+wind_turbine_defaults:
+  hub_height: 100.0
+  radius: 77.5
+  power:
+    type: tabular_wind_curve
+    is_coefficient: false
+    wind_speeds:
+      - 0.0
+      - 2.2
+      - 4.4
+      - 6.6
+      - 25.25
+      - 30.30
+      - 40.40
+      - 50.50
+    values:
+      - 0.0
+      - 0.0
+      - 99999.0
+      - 200000.0
+      - 5000000.0
+      - 5000000.0
+      - 0.0
+      - 0.0
+  thrust:
+    type: tabular_wind_curve
+    is_coefficient: true
+    wind_speeds:
+      - 0.0
+      - 1.1
+      - 2.2
+      - 3.3
+      - 21.21
+      - 22.22
+      - 33.33
+      - 50.0
+    values:
+      - 0.0
+      - 0.0
+      - 0.2
+      - 0.6
+      - 0.8
+      - 0.3
+      - 0.0
+      - 0.0
+  rho_hub: 1.25
+wind_turbines:
+  - lat: 57.2576870030
+    lon: 1.9942600206
+  - lat: 62.2800908951
+    lon: 2.9913900758
+  - lat: 66.5829804502
+    lon: 3.9885201310

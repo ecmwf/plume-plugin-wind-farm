@@ -24,6 +24,14 @@ ecbuild_add_library(
         utils.h
         plugin.cc
         plugin.h
+        config_parser.cc
+        config_parser.h
+        config_parser_native.cc
+        config_parser_native.h
+        config_parser_windio.cc
+        config_parser_windio.h
+        wind_farm_config.cc
+        wind_farm_config.h
         wind_farm.cc
         wind_farm.h
         wind_map.h

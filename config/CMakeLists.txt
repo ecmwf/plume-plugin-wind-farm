@@ -8,5 +8,5 @@
 # nor does it submit to any jurisdiction.
 
 
-set(wind_turbine_json ${CMAKE_CURRENT_SOURCE_DIR}/wind_turbines.json)
+set(wind_turbine_yaml ${CMAKE_CURRENT_SOURCE_DIR}/wind_turbines.yml)
 configure_file(plume-config.yml.in plume-config.yml @ONLY)

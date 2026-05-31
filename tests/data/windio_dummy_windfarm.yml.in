@@ -1,0 +1,21 @@
+name: Generic WF
+turbines: !include '@windio_dummy_turbine_yml@'
+layouts:
+    coordinates:
+      x:
+      - 222000.01
+      - 333000.02
+      - 444000.03
+      y:
+      - 7777000.700
+      - 8888000.800
+      - 9999000.900
+      z:
+      - 0.0
+      - 0.0
+      - 0.0
+      crs: +proj=merc +lon_0=0 +k=1 +x_0=0 +y_0=0 +ellps=WGS84 +units=m +no_defs +type=crs
+    identifiers:
+    - WT0
+    - WT1
+    - WT2

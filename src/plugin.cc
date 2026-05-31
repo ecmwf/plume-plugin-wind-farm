@@ -29,8 +29,6 @@
 #include "utils.h"
 
 
-using atlas::Log;
-
 namespace wind_farm_plugin {
 
 
