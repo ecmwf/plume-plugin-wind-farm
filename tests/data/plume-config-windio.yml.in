@@ -2,7 +2,7 @@ plugins:
   - name: WindFarmPlugin
     lib: wind_farm_plugin
     parameters:
-      - 
+      -
         - name: "u"
           type: "ATLAS_FIELD"
           height: &wind_field_height 70
@@ -16,12 +16,14 @@ plugins:
       wind_field_height: *wind_field_height
       compute_power: true
       export_wind_box: true
-      export_wind_turbine_power: false
+      export_wind_turbine_power: true
       wind_farm_box:
         lon_min: 6.900
         lat_min: 54.900
         lon_max: 7.100
         lat_max: 55.100
-        n_lon: 100
-        n_lat: 100
-      wind_turbines_filename: "@wind_turbine_yaml@"
+        n_lon: 10
+        n_lat: 10
+      config_format: windio
+      wind_turbines_filename: "@windio_dummy_wind_farm_yml@"
+      

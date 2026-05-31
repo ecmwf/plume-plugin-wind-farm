@@ -15,10 +15,12 @@
 #include <fstream>
 #include <iostream>
 #include <optional>
+#include <string>
 #include <utility>
 #include <vector>
 
 #include "atlas/runtime/Log.h"
+// #include "eckit/log/Log.h"
 #include "point.h"
 
 
@@ -123,6 +125,20 @@ double earthDistance(double lat1, double lon1, double lat2, double lon2);
  * @return std::pair<double,double>
  */
 std::pair<double, double> lonLat2xy(double lon1, double lat1, double lon2, double lat2);
+
+
+/**
+ * @brief Convert projected x/y coordinates to lon/lat using a CRS string.
+ *
+ * Currently supports +proj=merc with +lon_0, +k, +x_0, +y_0 in meters.
+ */
+std::pair<double, double> xyToLonLat(double x, double y, const std::string& crs);
+
+
+/**
+ * @brief Remove a leading "!include" and surrounding quotes from a YAML scalar.
+ */
+std::string stripIncludePrefix(const std::string& rawValue);
 
 
 /**

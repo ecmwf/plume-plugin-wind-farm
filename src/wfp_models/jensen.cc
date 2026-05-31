@@ -21,8 +21,6 @@
 #include "../utils.h"
 #include "jensen.h"
 
-using atlas::Log;
-
 
 namespace wind_farm_plugin {
 

@@ -17,4 +17,11 @@ plugins:
       compute_power: true
       export_wind_box: true
       export_wind_turbine_power: true
-      wind_turbines_filename: "@test_wind_turbine_json@"
+      wind_farm_box:
+        lon_min: 6.900
+        lat_min: 54.900
+        lon_max: 7.100
+        lat_max: 55.100
+        n_lon: 10
+        n_lat: 10
+      wind_turbines_filename: "@native_dummy_wind_farm_yml@"

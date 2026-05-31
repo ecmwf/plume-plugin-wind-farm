@@ -10,6 +10,7 @@
  */
 
 #include <numeric>
+#include <string>
 
 #include "eckit/config/YAMLConfiguration.h"
 #include "eckit/exception/Exceptions.h"
@@ -23,15 +24,14 @@
 #include "atlas/runtime/Log.h"
 
 
+#include "config_parser.h"
 #include "utils.h"
 #include "wfp_models/wfp_model.h"
 #include "wind_farm.h"
 
-using atlas::Log;
 
 
 namespace wind_farm_plugin {
-
 
 WindFarm::WindFarm(const eckit::Configuration& conf) : config_{conf} {
     std::string modelName = config_.getSubConfiguration("wind_farm_model").getString("name");
@@ -66,20 +66,22 @@ void WindFarm::setupWindTurbines(atlas::Field lonLatField) {
     auto yamlConfig                        = eckit::YAMLConfiguration(wind_turbines_filename);
 
     wtConfig_ = eckit::LocalConfiguration(yamlConfig);
-    auto wts  = wtConfig_.getSubConfigurations("wind_turbines");
 
-    // check that there is at least one wind turbine defined
-    if (wts.empty()) {
-        throw eckit::BadParameter("No wind turbines defined in the configuration", Here());
+    // check the format of the wind turbines configuration and parse it accordingly
+    std::string format = "native";
+    if (config_.has("config_format")) {
+        format = config_.getString("config_format");
     }
 
-    // wind turbine defaults
-    auto turbineDefaults = wtConfig_.getSubConfiguration("wind_turbine_defaults");
+    auto configParser = ConfigParser::build(format);
+    const auto windFarmConfig = configParser->parse(config_);
+    const auto& turbines = windFarmConfig.turbines();
+    const auto& turbineDefaults = windFarmConfig.turbineDefaults();
 
     // here we go through the wind turbines in the configuration and append only
     // the ones whose closest grid point falls in the local domain
     size_t wt_id = 0;
-    for (const auto& wt_conf : wts) {
+    for (const auto& wt_conf : turbines) {
 
         double wt_lat = wt_conf.getDouble("lat");
         double wt_lon = wt_conf.getDouble("lon");
@@ -118,7 +120,7 @@ void WindFarm::setupWindTurbines(atlas::Field lonLatField) {
         }
 
         windTurbinesGlobal_.push_back(std::make_unique<WindTurbine>(wt_id, wt_conf, nearestPointID, minDistanceLocal,
-                                                                    minRankGlob, turbineDefaults));
+                                        minRankGlob, turbineDefaults));
 
         wt_id++;
     }
@@ -205,12 +207,12 @@ void WindFarm::calculateAvgLatLons() {
 void WindFarm::setupWindFarmBoxPoints() {
 
     // check if the configuration has the wind_farm_box section
-    if (!wtConfig_.has("wind_farm_box")) {
+    if (!config_.has("wind_farm_box")) {
         Log::info() << "No wind_farm_box configuration found" << std::endl;
         return;
     }
 
-    auto box_config = wtConfig_.getSubConfiguration("wind_farm_box");
+    auto box_config = config_.getSubConfiguration("wind_farm_box");
 
     Log::info() << "Wind Farm Box: " << box_config << std::endl;
 

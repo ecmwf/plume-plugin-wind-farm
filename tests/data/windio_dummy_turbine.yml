@@ -1,0 +1,43 @@
+name: Dummy Turbine
+hub_height: 100
+rotor_diameter: 155
+TSR: 8
+performance:
+  Ct_curve:
+    Ct_values:
+    - 0.0
+    - 0.0
+    - 0.2
+    - 0.6
+    - 0.8
+    - 0.3
+    - 0.0
+    - 0.0
+    Ct_wind_speeds:
+    - 0.0
+    - 1.1
+    - 2.2
+    - 3.3
+    - 21.21
+    - 22.22
+    - 33.33
+    - 50.0
+  power_curve:
+    power_values:
+    - 0.0
+    - 0.0
+    - 99999
+    - 200000
+    - 5000000
+    - 5000000
+    - 0.0
+    - 0.0
+    power_wind_speeds:
+    - 0.0
+    - 2.2
+    - 4.4
+    - 6.6
+    - 25.25
+    - 30.30
+    - 40.40
+    - 50.50

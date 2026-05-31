@@ -81,9 +81,9 @@ CASE("test_wind_farm_setup") {
     const std::vector<std::unique_ptr<WindTurbine>>& globalWindTurbines = windFarm.windTurbinesGlobal();
     int wt_size = globalWindTurbines.size();
 
-    EXPECT_EQUAL(wt_size, 4);
-    EXPECT(std::abs(windFarm.averageLatLonGlob().lat() - 55.0) < tolerance);
-    EXPECT(std::abs(windFarm.averageLatLonGlob().lon() - 7.0) < tolerance);
+    EXPECT_EQUAL(wt_size, 3);
+    EXPECT(std::abs(windFarm.averageLatLonGlob().lat() - 62.04025278273082) < tolerance);
+    EXPECT(std::abs(windFarm.averageLatLonGlob().lon() - 2.9913900757810636) < tolerance);
 
 }
 

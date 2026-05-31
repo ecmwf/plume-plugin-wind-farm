@@ -30,6 +30,10 @@ WindTurbine::WindTurbine(int id, const eckit::Configuration& conf, size_t neares
     // WT name
     ID_ = id;
 
+    std::cout << "Creating WindTurbine ID " << ID_ << " at (" << lat() << ", " << lon() << ")" << std::endl;
+    std::cout << "WindTurbine config: " << conf << std::endl;
+    std::cout << "WindTurbine defaults: " << defaults << std::endl;
+
     hubHeight_ = conf.getDouble("hub_height", defaults.getDouble("hub_height"));
     radius_ = conf.getDouble("radius", defaults.getDouble("radius"));
     rhoHub_ = conf.getDouble("rho_hub", defaults.getDouble("rho_hub"));
