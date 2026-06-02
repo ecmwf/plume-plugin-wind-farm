@@ -27,10 +27,6 @@ using namespace wind_farm_plugin;
 
 namespace {
 
-const char* getTestDataDir() {
-    return std::getenv("PLUME_WIND_FARM_TEST_DIR");
-}
-
 const char* getTestConfigNativePath() {
     return std::getenv("PLUME_WIND_FARM_TEST_CONFIG_NATIVE");
 }
@@ -95,9 +91,6 @@ namespace test {
 CASE("test_user_formats") {
 
     const double tolerance = 10e-6;
-
-    const char* dataDir = getTestDataDir();
-    EXPECT(dataDir != nullptr);
 
     const char* testConfigNativePath = getTestConfigNativePath();
     EXPECT(testConfigNativePath != nullptr);
