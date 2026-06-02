@@ -129,9 +129,6 @@ private:
     // configuration
     eckit::LocalConfiguration config_;
 
-    // wind turbines configuration
-    eckit::LocalConfiguration wtConfig_;
-
     // wind farm model
     std::unique_ptr<WFPModel> wfpModel_;
 

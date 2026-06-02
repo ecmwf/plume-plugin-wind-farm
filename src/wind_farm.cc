@@ -56,17 +56,6 @@ void WindFarm::setupWindTurbines(atlas::Field lonLatField) {
     // nearest local point
     size_t nearestPointID;
 
-    // throw exception if the path to wind turbines file is not defined
-    if (!config_.has("wind_turbines_filename")) {
-        throw eckit::BadParameter("No wind turbines file defined in the configuration", Here());
-    }
-
-    // load wind turbines configuration
-    eckit::PathName wind_turbines_filename = config_.getString("wind_turbines_filename");
-    auto yamlConfig                        = eckit::YAMLConfiguration(wind_turbines_filename);
-
-    wtConfig_ = eckit::LocalConfiguration(yamlConfig);
-
     // check the format of the wind turbines configuration and parse it accordingly
     std::string format = "native";
     if (config_.has("config_format")) {
