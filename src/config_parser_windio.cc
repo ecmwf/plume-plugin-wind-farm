@@ -118,7 +118,7 @@ WindFarmConfig ConfigParserWindIO::parse(const eckit::Configuration& coreConfig)
     // Layouts
     auto layoutConfig = wfConfig.getSubConfiguration("layouts");
 
-    // Coordinaates
+    // Coordinates
     if (!layoutConfig.has("coordinates")) {
         throw eckit::BadParameter("WindIO layouts must define coordinates", Here());
     }    
