@@ -85,7 +85,7 @@ eckit::LocalConfiguration buildWindIOTurbineConfiguration(const std::vector<doub
     turbine.set("thrust", buildCurveConfiguration(ctCurve, "Ct_values", "Ct_wind_speeds", true));
 
 
-    // here we check if "rho_hub" is defined, if not emita a warning and assign default value of 1.25 kg/m3
+    // here we check if "rho_hub" is defined, if not emit a warning and assign default value of 1.25 kg/m3
     if (!turbineConfig.has("rho_hub")) {
         eckit::Log::warning() << "Warning: WindIO turbine configuration does not define 'rho_hub', using default value of 1.25 kg/m3" << std::endl;
         turbine.set("rho_hub", 1.25);
