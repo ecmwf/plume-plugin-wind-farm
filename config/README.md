@@ -43,6 +43,7 @@ The high level plugin configuration defines which wind farm model to run and wha
 | export_wind_turbine_power  | Flag to export per-turbine power in CSV    |
 | wind_farm_box              | Lat/Lon box where wind values are exported |
 | wind_turbines_filename     | Name of the wind turbine config file       |
+| config_format              | Wind turbine configuration format ('native' or 'windio') |
 
 The example uses a YAML anchor to define the wind field height once and reuse it for both parameters. The anchor must be defined before any alias that references it.
 
