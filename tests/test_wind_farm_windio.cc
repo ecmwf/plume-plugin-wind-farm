@@ -27,10 +27,6 @@ using namespace wind_farm_plugin;
 
 namespace {
 
-const char* getTestDataDir() {
-    return std::getenv("PLUME_WIND_FARM_TEST_DIR");
-}
-
 const char* getTestConfigPath() {
     return std::getenv("PLUME_WIND_FARM_TEST_CONFIG");
 }
@@ -51,17 +47,9 @@ CASE("test_windio_parser_from_files") {
 
     const double tolerance = 1e-6;
 
-    // test data directory
-    const char* dataDir = getTestDataDir();
-    EXPECT(dataDir != nullptr);
-
     // test config path
     const char* testConfigPath = getTestConfigPath();
     EXPECT(testConfigPath != nullptr);
-
-    // read the wind_farm config directly
-    eckit::PathName wfPath(std::string(dataDir) + "/windio_dummy_windfarm.yml");
-    eckit::YAMLConfiguration wfConfig(wfPath);
 
     // read the config using the WindIO parser
     eckit::LocalConfiguration coreConfig = loadCoreConfig(testConfigPath);
