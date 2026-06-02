@@ -79,7 +79,6 @@ ecbuild_add_test (
         atlas
         wind_farm_plugin
     ENVIRONMENT
-        PLUME_WIND_FARM_TEST_DIR=${CMAKE_CURRENT_BINARY_DIR}/data
         PLUME_WIND_FARM_TEST_CONFIG=${CMAKE_CURRENT_BINARY_DIR}/data/plume-config-windio.yml
 )
 
