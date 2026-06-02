@@ -12,8 +12,6 @@ add_subdirectory(data)
 ecbuild_add_test (
     TARGET plume_plugin_wind_farm_test_wind_farm
     SOURCES
-        ../src/utils.h
-        ../src/utils.cc
         test_utils.h
         test_utils.cc
         test_wind_farm.cc
