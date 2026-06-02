@@ -125,6 +125,12 @@ WindFarmConfig ConfigParserWindIO::parse(const eckit::Configuration& coreConfig)
     auto coordinates = layoutConfig.getSubConfiguration("coordinates");
     auto lons = coordinates.getDoubleVector("x");
     auto lats = coordinates.getDoubleVector("y");
+
+    // check that lat/lons are not empty
+    if (lons.empty() || lats.empty()) {
+        throw eckit::BadParameter("WindIO layout coordinate arrays cannot be empty", Here());
+    }
+        
     if (lons.size() != lats.size()) {
         throw eckit::BadParameter("WindIO layout x/y coordinate arrays must have the same size", Here());
     }
