@@ -18,6 +18,9 @@
 
 namespace wind_farm_plugin {
 
+/**
+ * Parser of wind farm information, e.g. turbine power curves, layout, etc..
+ */
 class ConfigParser {
 public:
     virtual ~ConfigParser() = default;
