@@ -57,10 +57,7 @@ void WindFarm::setupWindTurbines(atlas::Field lonLatField) {
     size_t nearestPointID;
 
     // check the format of the wind turbines configuration and parse it accordingly
-    std::string format = "native";
-    if (config_.has("config_format")) {
-        format = config_.getString("config_format");
-    }
+    std::string format = config_.getString("config_format", "native");
 
     auto configParser = ConfigParser::build(format);
     const auto windFarmConfig = configParser->parse(config_);
