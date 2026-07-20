@@ -101,13 +101,7 @@ eckit::LocalConfiguration buildWindIOTurbineConfiguration(const std::vector<doub
 WindFarmConfig ConfigParserWindIO::parse(const eckit::Configuration& coreConfig) {
     WindFarmConfig windFarmConfig;
 
-    if (!coreConfig.has("wind_turbines_filename")) {
-        throw eckit::BadParameter("No wind turbines file defined in the configuration", Here());
-    }
-
-    eckit::PathName windTurbinesFilename = coreConfig.getString("wind_turbines_filename");
-    auto yamlConfig = eckit::YAMLConfiguration(windTurbinesFilename);
-    eckit::LocalConfiguration wfConfig(yamlConfig);
+    auto wfConfig = loadWindTurbinesConfig(coreConfig);
 
 
     // Basic checks on the expected structure of the WindIO configuration
