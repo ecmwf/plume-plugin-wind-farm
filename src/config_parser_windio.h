@@ -21,7 +21,7 @@ namespace wind_farm_plugin {
  * @brief Config parser for WindIO format
  * @note This parser does NOT support the full WindIO specification, but 
  * only a subset relevant for the wind farm plugin. In WindIO format, wind turbine specs and layout 
- * are defined in separate files. 
+ * are defined in separate files (currently tested with windio 2.1.1)
  * 
  * Example of wind turbine file:
  * 
