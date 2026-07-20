@@ -11,7 +11,9 @@
 
 #include <string>
 
+#include "eckit/config/YAMLConfiguration.h"
 #include "eckit/exception/Exceptions.h"
+#include "eckit/filesystem/PathName.h"
 
 #include "config_parser.h"
 #include "config_parser_native.h"
@@ -28,6 +30,16 @@ std::unique_ptr<ConfigParser> ConfigParser::build(const std::string& format) {
     }
 
     throw eckit::BadParameter("Invalid config_format. Supported values are 'native' and 'windio'", Here());
+}
+
+eckit::LocalConfiguration ConfigParser::loadWindTurbinesConfig(const eckit::Configuration& coreConfig) {
+    if (!coreConfig.has("wind_turbines_filename")) {
+        throw eckit::BadParameter("No wind turbines file defined in the configuration", Here());
+    }
+
+    eckit::PathName windTurbinesFilename = coreConfig.getString("wind_turbines_filename");
+    auto yamlConfig = eckit::YAMLConfiguration(windTurbinesFilename);
+    return eckit::LocalConfiguration(yamlConfig);
 }
 
 }  // namespace wind_farm_plugin

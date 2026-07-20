@@ -14,6 +14,8 @@
 #include <memory>
 #include <string>
 
+#include "eckit/config/LocalConfiguration.h"
+
 #include "wind_farm_config.h"
 
 namespace wind_farm_plugin {
@@ -34,6 +36,15 @@ public:
      * @brief Factory method to build the appropriate ConfigParser based on the configuration format.
      */
     static std::unique_ptr<ConfigParser> build(const std::string& format);
+
+protected:
+    /**
+     * @brief Load the wind turbines YAML file referenced by `wind_turbines_filename`
+     * in the provided core configuration and return it as a LocalConfiguration.
+     *
+     * @throws eckit::BadParameter if `wind_turbines_filename` is not defined.
+     */
+    static eckit::LocalConfiguration loadWindTurbinesConfig(const eckit::Configuration& coreConfig);
 
 };
 

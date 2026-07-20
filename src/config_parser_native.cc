@@ -9,9 +9,7 @@
  * nor does it submit to any jurisdiction.
  */
 
-#include "eckit/config/YAMLConfiguration.h"
 #include "eckit/exception/Exceptions.h"
-#include "eckit/filesystem/PathName.h"
 
 #include "config_parser_native.h"
 
@@ -20,13 +18,7 @@ namespace wind_farm_plugin {
 WindFarmConfig ConfigParserNative::parse(const eckit::Configuration& coreConfig) {
     WindFarmConfig windFarmConfig;
 
-    if (!coreConfig.has("wind_turbines_filename")) {
-        throw eckit::BadParameter("No wind turbines file defined in the configuration", Here());
-    }
-
-    eckit::PathName windTurbinesFilename = coreConfig.getString("wind_turbines_filename");
-    auto yamlConfig = eckit::YAMLConfiguration(windTurbinesFilename);
-    auto wtConfig = eckit::LocalConfiguration(yamlConfig);
+    auto wtConfig = loadWindTurbinesConfig(coreConfig);
 
     if (wtConfig.has("wind_turbine_defaults")) {
         windFarmConfig.setTurbineDefaults(wtConfig.getSubConfiguration("wind_turbine_defaults"));
