@@ -68,6 +68,8 @@ ecbuild_add_test (
 ecbuild_add_test (
     TARGET plume_plugin_wind_farm_test_windio
     SOURCES
+        test_utils.h
+        test_utils.cc
         test_wind_farm_windio.cc
     INCLUDES
         $<BUILD_INTERFACE:${PROJECT_BINARY_DIR}/src>
