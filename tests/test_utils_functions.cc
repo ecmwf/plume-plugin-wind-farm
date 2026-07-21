@@ -40,7 +40,7 @@ CASE("test_lonlat2xy_zero_distance") {
 
 CASE("test_xyToLonLat_origin_params") {
     const std::string crs = "+proj=merc +lon_0=15.5 +k=1 +x_0=123.0 +y_0=-456.0 +ellps=WGS84 +units=m +no_defs +type=crs";
-    auto lonLat = xyToLonLat(123.0, -456.0, crs);
+    auto lonLat = xy2LonLat(123.0, -456.0, crs);
     EXPECT(std::abs(lonLat.first - 15.5) < kTol);
     EXPECT(std::abs(lonLat.second) < kTol);
 }
@@ -54,7 +54,7 @@ CASE("test_lonlat2xy_xyToLonLat_roundtrip") {
 
     for (const auto& point : points) {
         auto xy = lonLat2xy(point.first, point.second, 0.0, 0.0);
-        auto lonLat = xyToLonLat(xy.first, xy.second, kWgs84MercCrs);
+        auto lonLat = xy2LonLat(xy.first, xy.second, kWgs84MercCrs);
 
         EXPECT(std::abs(lonLat.first - point.first) < kTol);
         EXPECT(std::abs(lonLat.second - point.second) < kTol);

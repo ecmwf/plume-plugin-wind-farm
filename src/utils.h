@@ -132,7 +132,7 @@ std::pair<double, double> lonLat2xy(double lon1, double lat1, double lon2, doubl
  *
  * Currently supports +proj=merc with +lon_0, +k, +x_0, +y_0 in meters.
  */
-std::pair<double, double> xyToLonLat(double x, double y, const std::string& crs);
+std::pair<double, double> xy2LonLat(double x, double y, const std::string& crs);
 
 
 /**

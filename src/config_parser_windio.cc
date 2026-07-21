@@ -50,7 +50,7 @@ eckit::LocalConfiguration buildWindIOTurbineConfiguration(const std::vector<doub
         throw eckit::BadParameter("WindIO turbine index exceeds layout coordinate array size", Here());
     }
 
-    auto lonLat = xyToLonLat(lons[index], lats[index], crs);
+    auto lonLat = xy2LonLat(lons[index], lats[index], crs);
     turbine.set("lon", lonLat.first);
     turbine.set("lat", lonLat.second);
     turbine.set("crs", crs);
