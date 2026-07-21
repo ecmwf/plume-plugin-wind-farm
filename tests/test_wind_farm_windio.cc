@@ -74,7 +74,7 @@ CASE("test_windio_parser_from_files") {
         EXPECT(std::abs(turbine.getDouble("lon") - expectedLonLat.first) < tolerance);
         EXPECT(std::abs(turbine.getDouble("lat") - expectedLonLat.second) < tolerance);
 
-        EXPECT(std::abs(turbine.getDouble("hub_height") - 100.0) < tolerance);
+        EXPECT(std::abs(turbine.getDouble("hub_height") - 70.0) < tolerance);
         EXPECT(std::abs(turbine.getDouble("radius") - 77.5) < tolerance);
 
         auto power = turbine.getSubConfiguration("power");

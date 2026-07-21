@@ -1,5 +1,5 @@
 name: Dummy Turbine
-hub_height: 100
+hub_height: 70
 rotor_diameter: 155
 TSR: 8
 performance:
