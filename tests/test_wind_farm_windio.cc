@@ -70,7 +70,7 @@ CASE("test_windio_parser_from_files") {
 
         EXPECT_EQUAL(turbine.getString("identifier"), identifiers[i]);
         EXPECT_EQUAL(turbine.getString("crs"), crs);
-        auto expectedLonLat = xyToLonLat(xs[i], ys[i], crs);
+        auto expectedLonLat = xy2LonLat(xs[i], ys[i], crs);
         EXPECT(std::abs(turbine.getDouble("lon") - expectedLonLat.first) < tolerance);
         EXPECT(std::abs(turbine.getDouble("lat") - expectedLonLat.second) < tolerance);
 

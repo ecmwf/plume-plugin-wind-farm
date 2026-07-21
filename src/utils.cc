@@ -107,12 +107,12 @@ std::pair<double, double> lonLat2xy(double lon1, double lat1,
     return {p1.first - p2.first, p1.second - p2.second};
 }
 
-std::pair<double, double> xyToLonLat(double x, double y, const std::string& crs) {
+std::pair<double, double> xy2LonLat(double x, double y, const std::string& crs) {
     auto params = parseCrsParams(crs);
 
     auto projIt = params.find("proj");
     if (projIt == params.end() || projIt->second != "merc") {
-        throw eckit::BadParameter("Unsupported CRS for xyToLonLat: " + crs, Here());
+        throw eckit::BadParameter("Unsupported CRS for xy2LonLat: " + crs, Here());
     }
 
     const double lon0 = getParamAsDouble(params, "lon_0", 0.0) * DEG2RAD;
