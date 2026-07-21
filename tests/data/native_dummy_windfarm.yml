@@ -1,5 +1,5 @@
 wind_turbine_defaults:
-  hub_height: 100.0
+  hub_height: 70.0
   radius: 77.5
   power:
     type: tabular_wind_curve
