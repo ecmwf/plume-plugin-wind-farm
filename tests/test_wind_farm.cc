@@ -23,6 +23,8 @@
 
 #include "atlas/field/Field.h"
 
+#include "plume/data/FieldAccess.h"
+
 #include "wind_farm.h"
 #include "test_utils.h"
 #include "wind_turbine.h"
@@ -101,7 +103,7 @@ CASE("test_compute_power_no_wake") {
 
     setupWindFarm(windFarm, uField);
 
-    WindMap windMap(uField, vField);
+    WindMap windMap(plume::data::FieldView{uField}, plume::data::FieldView{vField});
     double power = windFarm.computePower(windMap);
     std::vector<LatLonValue> powers = windFarm.computePowerByTurbine(windMap);
 
@@ -124,7 +126,7 @@ CASE("test_compute_power_jensen") {
 
     atlas::Field uField = createUniform2DField("u", 10.0);
     atlas::Field vField = createUniform2DField("v", 5.0);
-    WindMap windMap(uField, vField);
+    WindMap windMap(plume::data::FieldView{uField}, plume::data::FieldView{vField});
 
     WindFarm jensenFarm(jensenConfig);
     setupWindFarm(jensenFarm, uField);
@@ -160,7 +162,7 @@ CASE("test_compute_wind_box_no_wake") {
     atlas::Field vField = createUniform2DField("v", 5.0);
 
     setupWindFarm(windFarm, uField);
-    WindMap windMap(uField, vField);
+    WindMap windMap(plume::data::FieldView{uField}, plume::data::FieldView{vField});
 
     std::vector<WindPoint> windBox = windFarm.computeWindBox(windMap);
     EXPECT_EQUAL(windBox.size(), expectedPoints);
@@ -188,7 +190,7 @@ CASE("test_compute_wind_box_jensen") {
     atlas::Field vField = createUniform2DField("v", 5.0);
 
     setupWindFarm(windFarm, uField);
-    WindMap windMap(uField, vField);
+    WindMap windMap(plume::data::FieldView{uField}, plume::data::FieldView{vField});
 
     std::vector<WindPoint> windBox = windFarm.computeWindBox(windMap);
     EXPECT_EQUAL(windBox.size(), expectedPoints);

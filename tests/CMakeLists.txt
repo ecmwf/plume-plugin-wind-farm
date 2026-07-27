@@ -23,6 +23,7 @@ ecbuild_add_test (
     LIBS
         eckit
         atlas
+        plume_plugin
         wind_farm_plugin
     ENVIRONMENT
         PLUME_WIND_FARM_TEST_CONFIG=${CMAKE_CURRENT_BINARY_DIR}/data/plume-config-native.yml
@@ -79,6 +80,7 @@ ecbuild_add_test (
     LIBS
         eckit
         atlas
+        plume_plugin
         wind_farm_plugin
     ENVIRONMENT
         PLUME_WIND_FARM_TEST_CONFIG=${CMAKE_CURRENT_BINARY_DIR}/data/plume-config-windio.yml

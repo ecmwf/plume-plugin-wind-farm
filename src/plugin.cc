@@ -53,8 +53,8 @@ void WindFarmPluginCore::setup() {
     exportWtPowerAppend_              = config_.getBool("export_wind_turbine_append", true);
     windTurbinePowerFilenamePrefix_   = config_.getString("wind_turbine_power_filename_prefix", "wind_turbine_power");
 
-    atlas::Field fieldU = modelData().getParam<atlas::Field>("u", config_.getString("wind_field_height"));
-    atlas::Field fieldV = modelData().getParam<atlas::Field>("v", config_.getString("wind_field_height"));
+    auto fieldU = modelData().getParam<atlas::Field>("u", config_.getString("wind_field_height"));
+    auto fieldV = modelData().getParam<atlas::Field>("v", config_.getString("wind_field_height"));
 
     // check that in the configuration, at least one output option is enabled
     if (!computePowerEnabled_ && !exportWindBoxEnabled_ && !exportWtPowerEnabled_) {

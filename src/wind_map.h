@@ -16,20 +16,19 @@
 #include "atlas/field/detail/FieldImpl.h"
 #include "atlas/functionspace/StructuredColumns.h"
 
+#include "plume/data/FieldAccess.h"
+
 
 namespace wind_farm_plugin {
 
 class WindMap {
 
 public:
-    WindMap(const atlas::Field& fieldU, const atlas::Field& fieldV) : fieldU_{fieldU}, fieldV_{fieldV} {
+    WindMap(plume::data::FieldView fieldU, plume::data::FieldView fieldV) : fieldU_{fieldU}, fieldV_{fieldV} {
         lonLatField_ = fieldU_.functionspace().lonlat();
     };
 
     ~WindMap() = default;
-
-    atlas::Field fieldU() const { return fieldU_; }
-    atlas::Field fieldV() const { return fieldV_; }
 
     atlas::array::ArrayView<const double, 2> arrayU() const {
         return atlas::array::make_view<const double, 2>(fieldU_);
@@ -43,8 +42,8 @@ public:
 
 
 private:
-    atlas::Field fieldU_;
-    atlas::Field fieldV_;
+    plume::data::FieldView fieldU_;
+    plume::data::FieldView fieldV_;
     atlas::Field lonLatField_;
 };
 
