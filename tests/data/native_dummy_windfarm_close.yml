@@ -44,10 +44,14 @@ wind_turbine_defaults:
       - 0.0
       - 0.0
   rho_hub: 1.25
+# Three turbines placed 2.5km apart in a straight line directly along the (u=10, v=5)
+# wind direction used by the regression test — close enough that Jensen's wake model
+# (kw=0.04) actually produces inter-turbine wake deficit at this spacing, unlike
+# native_dummy_windfarm.yml where the turbines are ~500-1000km apart.
 wind_turbines:
-  - lat: 57.2576870030
-    lon: 1.9942600206
-  - lat: 62.2800908951
-    lon: 2.9913900758
-  - lat: 66.5829804502
-    lon: 3.9885201310
+  - lat: 50.0000000000
+    lon: 0.0000000000
+  - lat: 50.0100543598
+    lon: 0.0312836143
+  - lat: 50.0201087197
+    lon: 0.0625672286

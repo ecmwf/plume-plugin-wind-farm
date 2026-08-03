@@ -10,3 +10,4 @@
 
 set(wind_turbine_yaml ${CMAKE_CURRENT_SOURCE_DIR}/wind_turbines.yml)
 configure_file(plume-config.yml.in plume-config.yml @ONLY)
+configure_file(plume-config-roughness-coupled.yml.in plume-config-roughness-coupled.yml @ONLY)
