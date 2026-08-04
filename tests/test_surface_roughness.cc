@@ -111,7 +111,7 @@ CASE("test_golden_roughness_z0m_close_farm") {
     // science is refined, so this is deliberately just a blind tripwire for drift, intentional or not, mirroring
     // Jensen/NoWake's golden tests. Update the literal deliberately whenever SurfaceRoughness's formula changes.
     auto z0mView = atlas::array::make_view<double, 2>(z0mField);
-    EXPECT(eckit::types::is_approximately_equal(z0mView(farmPointID, 0), 0.0010001884650557603, 1e-12));
+    EXPECT(eckit::types::is_approximately_equal(z0mView(farmPointID, 0), 0.0010001796392078773, 1e-12));
     // A point with no local turbine is never in cellData_ — must be left exactly as seeded. This is plain
     // bookkeeping, not part of the formula under iteration, so it's fine to assert directly rather than freeze.
     EXPECT(eckit::types::is_approximately_equal(z0mView(otherPointID, 0), z0mBackground, 1e-12));
@@ -139,7 +139,40 @@ CASE("test_surface_roughness_constant_mode_matches_configured_value") {
     // Frozen output, same as test_golden_roughness_z0m_close_farm — no re-derivation, just a tripwire so devs
     // notice if the blend or the constant-mode wiring drifts. Update deliberately if either changes.
     auto z0mView = atlas::array::make_view<double, 2>(z0mField);
-    EXPECT(eckit::types::is_approximately_equal(z0mView(pointID, 0), 0.0010011185879928279, 1e-12));
+    EXPECT(eckit::types::is_approximately_equal(z0mView(pointID, 0), 0.0010010662043430916, 1e-12));
+}
+
+CASE("test_surface_roughness_area_varies_by_latitude") {
+
+    // The far-apart farm has turbines spread at meaningfully different latitudes ~57/62/66°N, so each turbine lands in
+    // a distinct grid point/row. Constant mode isolates cell.area's effect: wfRoughness is a fixed literal, so any
+    // difference in blended z0m can only come from the cell area.
+    const double wfRoughnessConstant = 0.5;
+    const double z0mBackground       = 0.001;
+
+    eckit::LocalConfiguration coreConfig = loadCoreConfig(getTestConfigPath());
+    eckit::LocalConfiguration roughnessConfig =
+        withConstantRoughness(overrideModel(coreConfig, "roughness"), wfRoughnessConstant);
+
+    WindFarm windFarm(roughnessConfig);
+    windFarm.setupWindTurbines(sharedUField().functionspace().lonlat());
+    windFarm.initialiseCoupling(sharedWindMap());
+
+    const auto& turbines = windFarm.windTurbinesGlobal();
+    EXPECT_EQUAL(turbines.size(), 3u);
+    EXPECT_EQUAL(windFarm.turbinesByGridPoint().size(), 3u);  // far apart — one point each, not shared
+
+    atlas::Field z0mField = test::createUniform2DField("z0m", z0mBackground);
+    applyCouplingWithLedger(windFarm, sharedWindMap(), z0mField);
+
+    // Real grid-box area shrinks moving away from the equator so fraction grows with latitude, pulling the blend
+    // further from the (smaller) background and closer to the (larger) constant.
+    auto z0mView    = atlas::array::make_view<double, 2>(z0mField);
+    double z0mLat57 = z0mView(turbines[0]->nearestPointID(), 0);
+    double z0mLat62 = z0mView(turbines[1]->nearestPointID(), 0);
+    double z0mLat66 = z0mView(turbines[2]->nearestPointID(), 0);
+    EXPECT(z0mLat62 > z0mLat57 + 1e-9);
+    EXPECT(z0mLat66 > z0mLat62 + 1e-9);
 }
 
 CASE("test_surface_roughness_increases_with_wind") {

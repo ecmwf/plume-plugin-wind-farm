@@ -16,8 +16,8 @@
 #include "eckit/exception/Exceptions.h"
 
 #include "atlas/array.h"
+#include "atlas/field/FieldBuilder.h"
 #include "atlas/functionspace/StructuredColumns.h"
-#include "atlas/grid/StructuredGrid.h"
 
 #include "plume/data/ModelDataView.h"
 
@@ -26,24 +26,6 @@
 
 namespace wind_farm_plugin {
 
-namespace {
-// @todo MOCK, to be removed once ATLAS-XX lands: a proper Atlas utility returning an atlas::Field of per-point
-// cell areas over a structured functionspace.
-// Until then, this stands in with a single domain-averaged area (same value everywhere), not each point's
-// actual cell area. Do not extend or generalise this function — replace it outright once the real utility
-// exists, do not build on top of it.
-double averageCellArea(const atlas::functionspace::StructuredColumns& fs) {
-    constexpr double R  = 6371229.0;  // IFS spherical Earth radius, m
-    constexpr double pi = 3.14159265358979323846;
-
-    const double earthArea = 4.0 * pi * R * R;
-    const double nPoints   = static_cast<double>(fs.grid().size());
-
-    return earthArea / nPoints;  // m^2
-}
-}  // namespace
-
-
 static WFPModelBuilder<SurfaceRoughness> SurfaceRoughnessBuilder;
 
 SurfaceRoughness::SurfaceRoughness(const eckit::Configuration& conf) :
@@ -51,15 +33,6 @@ SurfaceRoughness::SurfaceRoughness(const eckit::Configuration& conf) :
     if (conf.has("wf_roughness_constant")) {
         wfRoughnessConstant_ = conf.getDouble("wf_roughness_constant");
     }
-}
-
-
-double SurfaceRoughness::gridCellArea(const WindMap& wMap, size_t /*pointID*/) const {
-
-    // @todo MOCK — see averageCellArea()'s own note. Every point gets the same domain-averaged area, not its
-    // true cell area, until ATLAS-XX lands.
-    atlas::functionspace::StructuredColumns fs(wMap.functionspace());
-    return averageCellArea(fs);
 }
 
 
@@ -80,6 +53,12 @@ void SurfaceRoughness::initialiseCoupling(const WindFarm& windFarm, const WindMa
             Here());
     }
 
+    // Atlas utility to get the area of each grid cell in m^2 for structured columns functionspaces.
+    // Defaults to Earth's IFS radius, so not providing a radius override here.
+    atlas::functionspace::StructuredColumns fs(wMap.functionspace());
+    atlas::Field areaField = atlas::field::FieldBuilder("grid-box-area", fs)();
+    auto area              = atlas::array::make_view<const double, 1>(areaField);
+
     for (const auto& entry : turbinesByPoint_) {
         size_t pointID                             = entry.first;
         const std::vector<const WindTurbine*>& wts = entry.second;
@@ -90,7 +69,7 @@ void SurfaceRoughness::initialiseCoupling(const WindFarm& windFarm, const WindMa
         }
 
         CellData cell;
-        cell.area = gridCellArea(wMap, pointID);
+        cell.area = area(pointID);
 
         // Clamped: rotorAreaSum is a vertical cross-section (the rotor disc), cell.area a horizontal ground
         // footprint — dividing one by the other isn't bounded to [0,1] the way a real ground-coverage fraction

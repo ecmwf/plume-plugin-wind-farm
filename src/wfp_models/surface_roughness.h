@@ -77,8 +77,8 @@ namespace wind_farm_plugin {
  *     3. The entire fractional-coverage blend with a background z0m — Frandsen's z0 describes an (idealised,
  *        infinite) wind farm's own roughness outright, to be used as a boundary condition on its own.
  *        The blend assumes the farm is spread uniformly across whatever surface types make up the background z0m (sea,
- *        land, forest, ...), and A_cell (see gridCellArea()) is the *entire* cell area rather than just the tile the
- *        farm actually sits on. Is it a reasonable assumption, should we move away from using a blend at all, can
+ *        land, forest, ...), and A_cell (see initialiseCoupling()) is the *entire* cell area rather than just the
+ *        tile the farm actually sits on. Is it a reasonable assumption, should we move away from using a blend at all, can
  *        Plume expose cell tile makeup and farm type (onshore/offshore).
  */
 class SurfaceRoughness final : public WFPModel {
@@ -100,8 +100,6 @@ public:
 private:
     /**
      * @brief Per-grid-cell quantities cached once by initialiseCoupling() — time-invariant for the run.
-     *
-     * @todo `area` is a mock average until we have the Atlas utility, not real.
      *
      * @todo `fraction` is clamped to [0,1] (see initialiseCoupling()) because its numerator (rotor swept area, a
      * vertical cross-section) and denominator (cell area, a horizontal footprint) are not the same kind of
@@ -132,18 +130,6 @@ private:
     /// Same keys as cellData_: turbines grouped by grid point. Cached once by initialiseCoupling() and reused
     /// by applyCoupling() — turbine-to-point assignment is invariant for the run.
     std::map<size_t, std::vector<const WindTurbine*>> turbinesByPoint_;
-
-    /**
-     * @brief Horizontal area of the grid cell a point belongs to, in square metres.
-     *
-     * Currently a MOCK (see averageCellArea() in the .cc) — the same domain-averaged area for every point, not
-     * each point's true cell area. Temporary stand-in for an Atlas utility in development that will return true
-     * per-point areas; tracked via ATLAS-XX and remove averageCellArea() once it lands.
-     *
-     * @param pointID Unused today; kept for the future Atlas-backed implementation, which will index into a
-     * per-point area field by it.
-     */
-    double gridCellArea(const WindMap& wMap, size_t pointID) const;
 };
 
 
