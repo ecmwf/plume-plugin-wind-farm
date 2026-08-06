@@ -100,9 +100,39 @@ void SurfaceRoughness::applyCoupling(const WindMap& wMap, const WindFarm& windFa
     modelData.writeParam(targetParam_, [&](plume::data::FieldWriter& z0mWriter) {
         auto z0m = atlas::array::make_view<double, 2>(z0mWriter);
 
+        // The host may write this field back one chunk at a time (e.g. from an OpenMP-parallelised loop),
+        // flagging each call's bounds via 1-based, inclusive "chunk_start"/"chunk_end" field metadata. Absent
+        // metadata means the whole field is valid, so a non-chunked host is unaffected.
+        const auto& metadata     = z0mWriter.metadata();
+        const bool hasChunkStart = metadata.has("chunk_start");
+        const bool hasChunkEnd   = metadata.has("chunk_end");
+
+        if (hasChunkStart != hasChunkEnd) {
+            throw eckit::BadValue("SurfaceRoughness: incomplete chunk bounds in field metadata", Here());
+        }
+
+        size_t chunkStartIdx = 0;                                      // 0-based, inclusive
+        size_t chunkEndIdx   = static_cast<size_t>(z0m.shape(0)) - 1;  // 0-based, inclusive
+
+        if (hasChunkStart) {
+            const long chunkStart = metadata.getLong("chunk_start");
+            const long chunkEnd   = metadata.getLong("chunk_end");
+
+            if (chunkStart < 1 || chunkEnd < chunkStart || chunkEnd > z0m.shape(0)) {
+                throw eckit::BadValue("SurfaceRoughness: invalid chunk bounds in field metadata", Here());
+            }
+
+            chunkStartIdx = static_cast<size_t>(chunkStart - 1);
+            chunkEndIdx   = static_cast<size_t>(chunkEnd - 1);
+        }
+
         for (const auto& entry : cellData_) {
             size_t pointID       = entry.first;
             const CellData& cell = entry.second;
+
+            if (pointID < chunkStartIdx || pointID > chunkEndIdx) {
+                continue;  // this turbine's grid point isn't in the chunk this call is writing
+            }
 
             double wfRoughness;
             if (wfRoughnessConstant_) {

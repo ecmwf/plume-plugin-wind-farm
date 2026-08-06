@@ -117,6 +117,42 @@ CASE("test_golden_roughness_z0m_close_farm") {
     EXPECT(eckit::types::is_approximately_equal(z0mView(otherPointID, 0), z0mBackground, 1e-12));
 }
 
+CASE("test_surface_roughness_respects_chunk_bounds") {
+
+    eckit::LocalConfiguration coreConfig      = loadCoreConfig(getCloseTestConfigPath());
+    eckit::LocalConfiguration roughnessConfig = overrideModel(coreConfig, "roughness");
+
+    WindFarm windFarm(roughnessConfig);
+    windFarm.setupWindTurbines(sharedUField().functionspace().lonlat());
+    windFarm.initialiseCoupling(sharedWindMap());
+
+    const auto byPoint = windFarm.turbinesByGridPoint();
+    EXPECT_EQUAL(byPoint.size(), 1u);
+    size_t farmPointID  = byPoint.begin()->first;
+    size_t otherPointID = farmPointID == 0 ? 1 : 0;
+
+    const double z0mBackground = 0.001;
+    atlas::Field z0mField      = test::createUniform2DField("z0m", z0mBackground);
+    auto z0mView               = atlas::array::make_view<double, 2>(z0mField);
+
+    // Malformed metadata (only one of the two keys set) must be rejected rather than silently guessing bounds.
+    z0mField.metadata().set("chunk_start", static_cast<long>(farmPointID + 1));
+    EXPECT_THROWS_AS(applyCouplingWithLedger(windFarm, sharedWindMap(), z0mField), eckit::BadValue);
+
+    // Chunk deliberately excludes the farm's own point: applyCoupling() must leave it untouched.
+    z0mField.metadata().set("chunk_start", static_cast<long>(otherPointID + 1));
+    z0mField.metadata().set("chunk_end", static_cast<long>(otherPointID + 1));
+    applyCouplingWithLedger(windFarm, sharedWindMap(), z0mField);
+    EXPECT(eckit::types::is_approximately_equal(z0mView(farmPointID, 0), z0mBackground, 1e-12));
+
+    // Chunk includes the farm's own point: applyCoupling() must write it, matching the un-chunked golden value
+    // from test_golden_roughness_z0m_close_farm above.
+    z0mField.metadata().set("chunk_start", static_cast<long>(farmPointID + 1));
+    z0mField.metadata().set("chunk_end", static_cast<long>(farmPointID + 1));
+    applyCouplingWithLedger(windFarm, sharedWindMap(), z0mField);
+    EXPECT(eckit::types::is_approximately_equal(z0mView(farmPointID, 0), 0.0010001796392078773, 1e-12));
+}
+
 CASE("test_surface_roughness_constant_mode_matches_configured_value") {
 
     // wf_roughness_constant lets users plug in a literature constant (e.g. Frandsen et al. 2009's ~0.5m)
