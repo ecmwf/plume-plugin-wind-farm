@@ -150,6 +150,15 @@ std::string stripIncludePrefix(const std::string& rawValue);
 void exportWindPoints(const std::vector<WindPoint>& points, const std::string& filename);
 
 
+/**
+ * @brief export the host model's real wind, sampled over a lat/lon box, to CSV file
+ *
+ * Writes components (lon,lat,u,v), not the collapsed magnitude exportWindPoints() writes. Writes unconditionally:
+ * callers should skip the call entirely for an empty @p samples .
+ */
+void exportWindSamples(const std::vector<WindSample>& samples, const std::string& filename);
+
+
 /** * @brief Linear interpolation in table of values
  *
  * @param x
