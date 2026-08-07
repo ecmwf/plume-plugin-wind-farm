@@ -111,7 +111,7 @@ CASE("test_golden_roughness_z0m_close_farm") {
     // science is refined, so this is deliberately just a blind tripwire for drift, intentional or not, mirroring
     // Jensen/NoWake's golden tests. Update the literal deliberately whenever SurfaceRoughness's formula changes.
     auto z0mView = atlas::array::make_view<double, 2>(z0mField);
-    EXPECT(eckit::types::is_approximately_equal(z0mView(farmPointID, 0), 0.0010001796392078773, 1e-12));
+    EXPECT(eckit::types::is_approximately_equal(z0mView(farmPointID, 0), 0.00100052664331545, 1e-12));
     // A point with no local turbine is never in cellData_ — must be left exactly as seeded. This is plain
     // bookkeeping, not part of the formula under iteration, so it's fine to assert directly rather than freeze.
     EXPECT(eckit::types::is_approximately_equal(z0mView(otherPointID, 0), z0mBackground, 1e-12));
@@ -150,7 +150,7 @@ CASE("test_surface_roughness_respects_chunk_bounds") {
     z0mField.metadata().set("chunk_start", static_cast<long>(farmPointID + 1));
     z0mField.metadata().set("chunk_end", static_cast<long>(farmPointID + 1));
     applyCouplingWithLedger(windFarm, sharedWindMap(), z0mField);
-    EXPECT(eckit::types::is_approximately_equal(z0mView(farmPointID, 0), 0.0010001796392078773, 1e-12));
+    EXPECT(eckit::types::is_approximately_equal(z0mView(farmPointID, 0), 0.00100052664331545, 1e-12));
 }
 
 CASE("test_surface_roughness_constant_mode_matches_configured_value") {
@@ -239,6 +239,43 @@ CASE("test_surface_roughness_increases_with_wind") {
     double z0mLow  = z0mAtWind(4.0, 0.0);
     double z0mHigh = z0mAtWind(15.0, 0.0);
     EXPECT(z0mHigh > z0mLow + 1e-9);
+}
+
+CASE("test_surface_roughness_idle_turbines_leave_background_untouched") {
+
+    // When turbines are not in operation, their contribution to the surface drag is 0, so z0m must not be changed.
+    eckit::LocalConfiguration coreConfig      = loadCoreConfig(getCloseTestConfigPath());
+    eckit::LocalConfiguration roughnessConfig = overrideModel(coreConfig, "roughness");
+
+    WindFarm windFarm(roughnessConfig);
+    atlas::Field uField = test::createUniform2DField("u", 0.0);
+    atlas::Field vField = test::createUniform2DField("v", 0.0);
+    windFarm.setupWindTurbines(uField.functionspace().lonlat());
+
+    WindMap windMap(plume::data::FieldView{uField}, plume::data::FieldView{vField});
+    windFarm.initialiseCoupling(windMap);
+
+    const double z0mBackground = 0.001;
+    atlas::Field z0mField      = test::createUniform2DField("z0m", z0mBackground);
+    applyCouplingWithLedger(windFarm, windMap, z0mField);
+
+    size_t pointID = windFarm.turbinesByGridPoint().begin()->first;
+    auto z0mView   = atlas::array::make_view<double, 2>(z0mField);
+    EXPECT(eckit::types::is_approximately_equal(z0mView(pointID, 0), z0mBackground, 1e-12));
+}
+
+CASE("test_surface_roughness_non_physical_background_throws") {
+
+    // z0m is a roughness length, physically always > 0. NaNs should not propagate silently.
+    eckit::LocalConfiguration coreConfig      = loadCoreConfig(getCloseTestConfigPath());
+    eckit::LocalConfiguration roughnessConfig = overrideModel(coreConfig, "roughness");
+
+    WindFarm windFarm(roughnessConfig);
+    windFarm.setupWindTurbines(sharedUField().functionspace().lonlat());
+    windFarm.initialiseCoupling(sharedWindMap());
+
+    atlas::Field z0mField = test::createUniform2DField("z0m", 0.0);
+    EXPECT_THROWS_AS(applyCouplingWithLedger(windFarm, sharedWindMap(), z0mField), eckit::BadValue);
 }
 
 CASE("test_target_param_without_writable_z0m_throws_via_plugin_setup") {
