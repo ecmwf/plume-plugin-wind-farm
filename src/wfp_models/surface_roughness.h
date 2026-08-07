@@ -32,8 +32,12 @@ namespace wind_farm_plugin {
  * are physically distinct and a wind farm's drag effect is a momentum-sink effect first; folding z0h in too, if
  * ever wanted, is a separate extension, not a naming detail.
  *
- *   lambda = sum_i( Ct_i(v)/2 * A_rotor_i ) / x^2
- *   wf_roughness = h_hub_bar * exp(-kappa / sqrt(lambda))
+ *   lambda          = sum_i( Ct_i(v)/2 * A_rotor_i ) / x^2
+ *   background_term = kappa / ln(h_hub_bar / z0_background)
+ *   wf_roughness    = h_hub_bar * exp(-kappa / sqrt(background_term^2 + lambda))
+ *
+ * background_term keeps this well-behaved as lambda -> 0 (every local turbine idle, below cut-in or above cut-out):
+ * wf_roughness reduces exactly to z0_background, not 0. An idle farm can't be smoother than the tile it stands on.
  *
  * blended with the host's current background z0m by fractional coverage:
  *
@@ -61,10 +65,9 @@ namespace wind_farm_plugin {
  *
  * @todo First approach: *implicit* wind farm representation with surface roughness length, using formula from
  * Frandsen 1992, J. Wind Eng. Ind. Aerod. 39, 251-265 to confirm with DTWO WP7 partners:
- *  - Frandsen (1992) Eq. (24): c'_t = (1/2)*C_T*A_r/x^2 is exactly our lambda's per-turbine term. The
- *    exp(-kappa/sqrt(...)) shape is also the footnote to Fig. 5, and Eq. (31), which additionally folds in a
- *    background terrain roughness.
- *  - h_hub_bar prefactor: not literally written in Frandsen's footnote/Eq. (31) but derivable from the equations.
+ *  - Frandsen (1992) Eq. (24): c'_t = (1/2)*C_T*A_r/x^2 is exactly our lambda's per-turbine term.
+ *  - wf_roughness is based on Eq. (31), except the background_term is squared so lambda -> 0 (idle farm) reduces
+ *    exactly to z0_background, and the h_hub_bar prefactor: not literally in (31) but derivable from the equations.
  *    The standard log law solved for z0 at reference height h with friction velocity u_*2 gives
  *    z0,2 = h*exp(-k*u_h/u_*2) in general. Eq. (25), u_*2^2 = u_*1^2 + u_h^2*c'_t, gives u_h/u_*2 ~= 1/sqrt(c'_t),
  *    so z0,2 ~= h*exp(-k/sqrt(c'_t)) — matching the written footnote exactly, except for the h.

@@ -134,6 +134,13 @@ void SurfaceRoughness::applyCoupling(const WindMap& wMap, const WindFarm& windFa
                 continue;  // this turbine's grid point isn't in the chunk this call is writing
             }
 
+            double z0mBackground = z0m(pointID, 0);
+            // Should we handle missing values ?
+            if (z0mBackground <= 0.0) {
+                throw eckit::BadValue(
+                    "SurfaceRoughness: non-physical z0m background (<= 0) at a turbine-affected point", Here());
+            }
+
             double wfRoughness;
             if (wfRoughnessConstant_) {
                 wfRoughness = *wfRoughnessConstant_;
@@ -157,14 +164,21 @@ void SurfaceRoughness::applyCoupling(const WindMap& wMap, const WindFarm& windFa
                     weightSum += weight;
                 }
 
-                double hubHeightBar = (weightSum > 0.0) ? weightedHubSum / weightSum : 0.0;
-                wfRoughness         = (lambda > 0.0) ? hubHeightBar * std::exp(-kappa_ / std::sqrt(lambda)) : 0.0;
+                if (weightSum > 0.0) {
+                    double hubHeightBar = weightedHubSum / weightSum;
+                    // Frandsen 1992 Eq. (31): lambda -> 0 reduces exactly to z0mBackground.
+                    double backgroundTerm = kappa_ / std::log(hubHeightBar / z0mBackground);
+                    wfRoughness =
+                        hubHeightBar * std::exp(-kappa_ / std::sqrt(backgroundTerm * backgroundTerm + lambda));
+                }
+                else {
+                    wfRoughness = z0mBackground;  // every local turbine idle, no farm effect.
+                }
             }
 
             // @todo NAIVE — blends against the whole-cell background regardless of which surface tile(s) make it
             // up; see the class-level @todo in surface_roughness.h for why that's not yet right for mixed cells.
-            double z0mBackground = z0m(pointID, 0);
-            z0m(pointID, 0)      = cell.fraction * wfRoughness + (1.0 - cell.fraction) * z0mBackground;
+            z0m(pointID, 0) = cell.fraction * wfRoughness + (1.0 - cell.fraction) * z0mBackground;
         }
     });
 }
