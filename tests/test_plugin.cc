@@ -24,7 +24,7 @@
 #include "atlas/field/Field.h"
 
 #include "plume/coupling/WriteAuthorisation.h"
-#include "plume/coupling/WriteBackLedger.h"
+#include "plume/coupling/WriteBackTracker.h"
 #include "plume/coupling/WriteBackPolicy.h"
 #include "plume/data/FieldAccess.h"
 #include "plume/data/ModelData.h"
@@ -119,7 +119,7 @@ atlas::Field& sharedMarkerField() {
     return field;
 }
 
-// Raw-pointer statics, deliberately never auto-destroyed: ~WriteBackLedger() crashes when invoked during
+// Raw-pointer statics, deliberately never auto-destroyed: ~WriteBackTracker() crashes when invoked during
 // real static/atexit teardown on some toolchains. main() owns both in local unique_ptrs instead, destroying them in
 // dependency order while still executing normally.
 plume::WriteAuthorisation& sharedAuth() {
@@ -132,10 +132,10 @@ plume::WriteAuthorisation& sharedAuth() {
     return *auth;
 }
 
-plume::coupling::WriteBackLedger& sharedLedger() {
-    static plume::coupling::WriteBackLedger* ledger =
-        new plume::coupling::WriteBackLedger(sharedAuth(), plume::WriteBackPolicy::single_writer);
-    return *ledger;
+plume::coupling::WriteBackTracker& sharedTracker() {
+    static plume::coupling::WriteBackTracker* tracker =
+        new plume::coupling::WriteBackTracker(sharedAuth(), plume::WriteBackPolicy::single_writer);
+    return *tracker;
 }
 
 // Fed exactly once, on first use from whichever CASE runs first.
@@ -146,8 +146,8 @@ plume::data::ModelData& sharedCoupledModelData() {
         data.provideParam("u;hl;110", &test::sharedUField());
         data.provideParam("v;hl;110", &test::sharedVField());
         data.provideParam(kTargetParam, &sharedMarkerField());
-        data.enrollWritebackParams(sharedLedger(), sharedAuth());
-        data.attachWritebackLedger(&sharedLedger());
+        data.enrollWritebackParams(sharedTracker(), sharedAuth());
+        data.attachWritebackTracker(&sharedTracker());
         return true;
     }();
     (void)fed;
@@ -166,12 +166,12 @@ WindFarmPluginCore& sharedCoupledPluginCore() {
     return pluginCore;
 }
 
-// Mirrors plume::Manager::run()'s own ledger cycle.
+// Mirrors plume::Manager::run()'s own tracker cycle.
 void runCoupledCycle(WindFarmPluginCore& pluginCore) {
-    sharedLedger().reset();
-    sharedLedger().open();
+    sharedTracker().reset();
+    sharedTracker().open();
     pluginCore.run();
-    sharedLedger().flush();
+    sharedTracker().submit();
 }
 
 }  // namespace
@@ -360,14 +360,14 @@ int main(int argc, char** argv) {
     sharedCoupledPluginCore().releaseData();
     sharedUncoupledPluginCore().releaseData();
 
-    // Detach before destroying the ledger so ~ModelData() doesn't hold a dangling pointer to it.
-    sharedCoupledModelData().detachWritebackLedger();
+    // Detach before destroying the tracker so ~ModelData() doesn't hold a dangling pointer to it.
+    sharedCoupledModelData().detachWritebackTracker();
 
-    // sharedAuth()/sharedLedger() are deliberately never auto-destroyed. Owning them here in local unique_ptrs,
-    // declared in this order, destroys the ledger first (it references auth) via ordinary RAII on ordinary stack unwind
+    // sharedAuth()/sharedTracker() are deliberately never auto-destroyed. Owning them here in local unique_ptrs,
+    // declared in this order, destroys the tracker first (it references auth) via ordinary RAII on ordinary stack unwind
     // before real static teardown begins.
     std::unique_ptr<plume::WriteAuthorisation> authOwner(&sharedAuth());
-    std::unique_ptr<plume::coupling::WriteBackLedger> ledgerOwner(&sharedLedger());
+    std::unique_ptr<plume::coupling::WriteBackTracker> trackerOwner(&sharedTracker());
 
     return result;
 }
