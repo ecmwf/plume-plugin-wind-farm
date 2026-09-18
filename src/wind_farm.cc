@@ -318,8 +318,8 @@ std::pair<double, double> WindFarm::computeAvgWindSpeed(const WindMap& wMap) con
     auto arrayV = wMap.arrayV();
 
     for (const auto& wt : windTurbines_) {
-        double U = arrayU(wt->nearestPointID(), 0);
-        double V = arrayV(wt->nearestPointID(), 0);
+        double U = arrayU(wt->nearestPointID(), 131);
+        double V = arrayV(wt->nearestPointID(), 131);
         Uavg += U;
         Vavg += V;
     }

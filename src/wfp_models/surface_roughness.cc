@@ -125,6 +125,7 @@ void SurfaceRoughness::applyCoupling(const WindMap& wMap, const WindFarm& windFa
             chunkStartIdx = static_cast<size_t>(chunkStart - 1);
             chunkEndIdx   = static_cast<size_t>(chunkEnd - 1);
         }
+        eckit::Log::info() << "Plume WF coupling calculation: " << std::endl;
 
         for (const auto& entry : cellData_) {
             size_t pointID       = entry.first;
@@ -148,8 +149,8 @@ void SurfaceRoughness::applyCoupling(const WindMap& wMap, const WindFarm& windFa
             else {
                 const auto& turbines = turbinesByPoint_.at(pointID);
 
-                double u    = arrayU(pointID, 0);
-                double v    = arrayV(pointID, 0);
+                double u    = arrayU(pointID, 131);
+                double v    = arrayV(pointID, 131);
                 double vmag = std::sqrt(u * u + v * v);
 
                 // lambda and the drag-weighted hub height share the same per-turbine weight: Ct_i(v)/2 * A_rotor_i.
@@ -178,8 +179,11 @@ void SurfaceRoughness::applyCoupling(const WindMap& wMap, const WindFarm& windFa
 
             // @todo NAIVE — blends against the whole-cell background regardless of which surface tile(s) make it
             // up; see the class-level @todo in surface_roughness.h for why that's not yet right for mixed cells.
+            eckit::Log::info() << z0m(pointID, 0) << " ";
             z0m(pointID, 0) = cell.fraction * wfRoughness + (1.0 - cell.fraction) * z0mBackground;
+            eckit::Log::info() << z0m(pointID, 0) << "; ";
         }
+        eckit::Log::info() << std::endl;
     });
 }
 

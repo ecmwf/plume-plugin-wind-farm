@@ -33,8 +33,8 @@ std::vector<WindPoint> WFPModel::computeWindAtTurbines(const WindMap& wMap, cons
     windAtTurbines.reserve(localTurbines.size());
     for (const auto& wt : localTurbines) {
         const size_t nearestPointID = wt->nearestPointID();
-        const double hubU_ms        = arrayU(nearestPointID, 0);
-        const double hubV_ms        = arrayV(nearestPointID, 0);
+        const double hubU_ms        = arrayU(nearestPointID, 131);
+        const double hubV_ms        = arrayV(nearestPointID, 131);
         windAtTurbines.push_back(WindPoint(*wt, hubU_ms, hubV_ms));
     }
     return windAtTurbines;

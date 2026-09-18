@@ -103,8 +103,11 @@ void WindFarmPluginCore::setup() {
         }
     }
 
-    auto fieldU = modelData().getParam<atlas::Field>("u", config_.getString("wind_field_height"));
-    auto fieldV = modelData().getParam<atlas::Field>("v", config_.getString("wind_field_height"));
+    // TODO revert patch after jbc9 debugging
+    //auto fieldU = modelData().getParam<atlas::Field>("u", config_.getString("wind_field_height"));
+    //auto fieldV = modelData().getParam<atlas::Field>("v", config_.getString("wind_field_height"));
+    auto fieldU = modelData().getParam<atlas::Field>("u");
+    auto fieldV = modelData().getParam<atlas::Field>("v");
 
     // check that in the configuration, at least one output option is enabled
     if (!computePowerEnabled_ && !exportWindBoxEnabled_ && !exportWtPowerEnabled_) {

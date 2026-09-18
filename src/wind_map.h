@@ -63,7 +63,7 @@ public:
             double lon = lonlatView(i, 0);
             double lat = lonlatView(i, 1);
             if (box.contains(lon, lat)) {
-                samples.push_back(WindSample{lat, lon, u(i, 0), v(i, 0)});
+                samples.push_back(WindSample{lat, lon, u(i, 131), v(i, 131)});
             }
         }
         return samples;
