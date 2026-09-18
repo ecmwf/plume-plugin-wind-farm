@@ -137,8 +137,12 @@ void WindFarmPluginCore::setup() {
 
 void WindFarmPluginCore::run() {
 
+    // get current time step
+    int timeStep = modelData().getParam<int>("NSTEP");
+
     // First entry-point: write back location, apply the coupling model.
     if (twoWayEnabled_ && modelData().isUpdated(windFarm_.couplingTargetParam())) {
+        Log::info() << "Step: " << timeStep << ") running WindFarmPluginCore Coupling step.." << std::endl;
         windFarm_.applyCoupling(*windMap_, modelData());
         return;
     }
@@ -149,8 +153,6 @@ void WindFarmPluginCore::run() {
         return;
     }
 
-    // get current time step
-    int timeStep = modelData().getParam<int>("NSTEP");
     Log::info() << "Step: " << timeStep << ") running WindFarmPluginCore.." << std::endl;
 
     // Power output per turbine (used for computing total power and exporting, if enabled)
