@@ -198,6 +198,27 @@ void exportWindPoints(const std::vector<WindPoint>& points, const std::string& f
 }
 
 
+void exportWindSamples(const std::vector<WindSample>& samples, const std::string& filename) {
+
+    Log::info() << "Exporting wind samples to " << filename << ", size: " << samples.size() << std::endl;
+
+    std::ofstream file(filename);
+    if (!file.is_open()) {
+        throw eckit::CantOpenFile("Error opening file " + filename + " for writing", Here());
+    }
+
+    file << "lon,lat,u,v" << std::endl;
+    for (const auto& s : samples) {
+        file << s.lon << "," << s.lat << "," << s.u << "," << s.v << std::endl;
+    }
+
+    file.close();
+    if (file.fail()) {
+        throw eckit::CloseError("Error closing file " + filename, Here());
+    }
+}
+
+
 
 double linearInterpolate(double x, const std::vector<double>& x_vals, const std::vector<double>& y_vals) {
     size_t n = x_vals.size();

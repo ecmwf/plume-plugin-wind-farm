@@ -7,7 +7,7 @@ build:
     - ecmwf/eckit@develop
     - ecmwf/fckit@develop
     - ecmwf/atlas@develop
-    - ecmwf/plume@develop
+    - ecmwf/plume@feature/two-way-coupling-ModelData-guards
   dependency_cmake_options:
     - ecmwf/atlas:-DENABLE_FORTRAN=ON
   parallel: 64

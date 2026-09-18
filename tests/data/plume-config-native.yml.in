@@ -5,7 +5,7 @@ plugins:
       -
         - name: "u"
           type: "ATLAS_FIELD"
-          height: &wind_field_height 70
+          height: &wind_field_height 110
         - name: "v"
           type: "ATLAS_FIELD"
           height: *wind_field_height

@@ -44,10 +44,13 @@ wind_turbine_defaults:
       - 0.0
       - 0.0
   rho_hub: 1.25
+# Three turbines 60 degrees of latitude apart. Atlas's checkerboard MPI partitioner splits L200x101 into contiguous
+# latitude bands (one per rank), so with MPI_NPROCS=3 each turbine sits well inside a different band's interior.
+# Tests using this fixture should assert this in case Atlas changes its partitioning strategy in the future.
 wind_turbines:
-  - lat: 57.2576870030
-    lon: 1.9942600206
-  - lat: 62.2800908951
-    lon: 2.9913900758
-  - lat: 66.5829804502
-    lon: 3.9885201310
+  - lat: -60.0
+    lon: 0.0
+  - lat: 0.0
+    lon: 0.0
+  - lat: 60.0
+    lon: 0.0
