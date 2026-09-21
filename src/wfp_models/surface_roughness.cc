@@ -93,6 +93,8 @@ void SurfaceRoughness::applyCoupling(const WindMap& wMap, const WindFarm& windFa
     if (cellData_.empty()) {
         return;  // no local turbines on this rank — nothing to blend
     }
+    eckit::Log::info() << "Step: " << modelData.getParam<int>("NSTEP")
+                       << ") running WindFarmPluginCore Coupling step on rank " << eckit::mpi::comm().rank() << ", ";
 
     auto arrayU = wMap.arrayU();
     auto arrayV = wMap.arrayV();
@@ -124,6 +126,10 @@ void SurfaceRoughness::applyCoupling(const WindMap& wMap, const WindFarm& windFa
 
             chunkStartIdx = static_cast<size_t>(chunkStart - 1);
             chunkEndIdx   = static_cast<size_t>(chunkEnd - 1);
+
+            eckit::Log::info() << "  chunk [" << chunkStartIdx << ", " << chunkEndIdx << "]" << std::endl;
+        } else {
+            eckit::Log::info() << "  whole local field" << std::endl;
         }
 
         for (const auto& entry : cellData_) {
