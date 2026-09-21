@@ -216,7 +216,8 @@ std::string WindFarmPluginCore::assembleFilename(const std::string& prefix, std:
         oss << "_rank_" << std::setw(4) << std::setfill('0') << *rank;
     }
     oss << ".csv";
-    return oss.str();
+
+    return resolveOutputPath(oss.str());
 }
 
 // Check whether the (single) wind turbine power output file used in append mode

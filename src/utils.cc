@@ -9,10 +9,12 @@
  * nor does it submit to any jurisdiction.
  */
 
+#include <cstdlib>
 #include <sstream>
 #include <unordered_map>
 
 #include "eckit/exception/Exceptions.h"
+#include "eckit/filesystem/PathName.h"
 #include "eckit/utils/StringTools.h"
 
 #include "utils.h"
@@ -173,6 +175,18 @@ std::string stripIncludePrefix(const std::string& rawValue) {
     }
 
     return trimmed;
+}
+
+
+std::string resolveOutputPath(const std::string& filename) {
+    const char* outputDirEnv = std::getenv("PLUME_PLUGINS_OUTPUT_DIR");
+    if (outputDirEnv && *outputDirEnv) {
+        eckit::PathName outputDir(outputDirEnv);
+        outputDir.mkdir();
+        return (outputDir / filename).asString();
+    }
+
+    return filename;
 }
 
 

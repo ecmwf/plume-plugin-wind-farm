@@ -41,13 +41,14 @@ namespace {
 // reviews z0m field afterwards.
 void applyCouplingWithTracker(WindFarm& windFarm, const WindMap& windMap, atlas::Field& z0mField) {
     plume::data::ModelData data;
+    data.createParam("NSTEP", 0);
     data.provideParam("z0m", &z0mField);
     plume::WriteAuthorisation auth;
     auth.grant("wind_farm_plugin", "z0m");
     plume::coupling::WriteBackTracker tracker(auth, plume::WriteBackPolicy::single_writer);
     data.enrollWritebackParams(tracker, auth);
     data.attachWritebackTracker(&tracker);
-    plume::data::ModelDataView view = data.filter(std::set<std::string>{"z0m"}, "wind_farm_plugin");
+    plume::data::ModelDataView view = data.filter(std::set<std::string>{"z0m", "NSTEP"}, "wind_farm_plugin");
     tracker.open();
 
     windFarm.applyCoupling(windMap, view);

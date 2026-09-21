@@ -142,6 +142,17 @@ std::string stripIncludePrefix(const std::string& rawValue);
 
 
 /**
+ * @brief Resolve where a plugin output file should actually be written.
+ *
+ * If the environment variable PLUME_PLUGINS_OUTPUT_DIR is set (and non-empty), @p filename is placed under that
+ * directory (created if needed) and the resulting path is returned, so Plume can locate/copy the file as one of
+ * its declared outputs. Otherwise, @p filename is returned unchanged (written in place, as before this mechanism
+ * existed).
+ */
+std::string resolveOutputPath(const std::string& filename);
+
+
+/**
  * @brief export wind points to CSV file
  *
  * @param points

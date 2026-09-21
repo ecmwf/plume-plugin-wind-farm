@@ -11,9 +11,14 @@
 
 #include <algorithm>
 #include <cmath>
+#include <iomanip>
 #include <optional>
+#include <sstream>
 
 #include "eckit/exception/Exceptions.h"
+#include "eckit/log/Channel.h"
+#include "eckit/mpi/Comm.h"
+#include "eckit/thread/ThreadSingleton.h"
 
 #include "atlas/array.h"
 #include "atlas/field/FieldBuilder.h"
@@ -21,12 +26,32 @@
 
 #include "plume/data/ModelDataView.h"
 
+#include "../utils.h"
 #include "surface_roughness.h"
 
 
 namespace wind_farm_plugin {
 
 static WFPModelBuilder<SurfaceRoughness> SurfaceRoughnessBuilder;
+
+namespace {
+struct CreateCouplingLogChannel {
+    eckit::Channel* operator()() {
+        auto* channel = new eckit::Channel();
+        std::ostringstream filename;
+        filename << "surface_roughness_coupling_rank_" << std::setw(4) << std::setfill('0')
+                << eckit::mpi::comm().rank() << ".log";
+        channel->setFile(resolveOutputPath(filename.str()));
+        return channel;
+    }
+};
+
+eckit::Channel& couplingLog() {
+    static eckit::ThreadSingleton<eckit::Channel, CreateCouplingLogChannel> instance;
+    return instance.instance();
+}
+
+}  // namespace
 
 SurfaceRoughness::SurfaceRoughness(const eckit::Configuration& conf) :
     WFPModel{conf}, targetParam_{conf.getString("target_param", "z0m")} {
@@ -93,6 +118,8 @@ void SurfaceRoughness::applyCoupling(const WindMap& wMap, const WindFarm& windFa
     if (cellData_.empty()) {
         return;  // no local turbines on this rank — nothing to blend
     }
+    couplingLog() << "Step: " << modelData.getParam<int>("NSTEP")
+                 << ") running WindFarmPluginCore Coupling step on rank " << eckit::mpi::comm().rank() << ", ";
 
     auto arrayU = wMap.arrayU();
     auto arrayV = wMap.arrayV();
@@ -124,6 +151,10 @@ void SurfaceRoughness::applyCoupling(const WindMap& wMap, const WindFarm& windFa
 
             chunkStartIdx = static_cast<size_t>(chunkStart - 1);
             chunkEndIdx   = static_cast<size_t>(chunkEnd - 1);
+
+            couplingLog() << "  chunk [" << chunkStartIdx << ", " << chunkEndIdx << "]" << std::endl;
+        } else {
+            couplingLog() << "  whole local field" << std::endl;
         }
 
         for (const auto& entry : cellData_) {
