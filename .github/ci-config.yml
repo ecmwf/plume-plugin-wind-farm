@@ -4,7 +4,7 @@ dependencies: |
   ecmwf/eckit
   ecmwf/fckit
   ecmwf/atlas
-  ecmwf/plume
+  ecmwf/plume@feature/two-way-coupling-ModelData-guards
 dependency_cmake_options: |
   ecmwf/atlas: "-DENABLE_FORTRAN=ON"
 dependency_branch: develop

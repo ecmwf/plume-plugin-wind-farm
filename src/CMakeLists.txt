@@ -43,6 +43,8 @@ ecbuild_add_library(
         wfp_models/no_wake.h
         wfp_models/jensen.cc
         wfp_models/jensen.h
+        wfp_models/surface_roughness.cc
+        wfp_models/surface_roughness.h
         perf_curves/const_wind_curve.cc
         perf_curves/const_wind_curve.h
         perf_curves/curve_factory.cc

@@ -10,6 +10,9 @@
  */
 
 #include <cmath>
+#include <cstdio>
+#include <fstream>
+#include <sstream>
 #include <string>
 #include <utility>
 #include <vector>
@@ -59,6 +62,31 @@ CASE("test_lonlat2xy_xyToLonLat_roundtrip") {
         EXPECT(std::abs(lonLat.first - point.first) < kTol);
         EXPECT(std::abs(lonLat.second - point.second) < kTol);
     }
+}
+
+CASE("test_export_wind_samples_csv_format") {
+    std::vector<WindSample> samples{
+        {54.9, 6.9, 1.0, 2.0},
+        {55.0, 7.0, -3.0, 4.0},
+    };
+    const std::string filename = "test_export_wind_samples.csv";
+    exportWindSamples(samples, filename);
+
+    std::ifstream file(filename);
+    EXPECT(file.is_open());
+
+    std::string line;
+    std::getline(file, line);
+    EXPECT_EQUAL(line, std::string("lon,lat,u,v"));
+
+    std::getline(file, line);
+    EXPECT_EQUAL(line, std::string("6.9,54.9,1,2"));
+
+    std::getline(file, line);
+    EXPECT_EQUAL(line, std::string("7,55,-3,4"));
+
+    file.close();
+    std::remove(filename.c_str());
 }
 
 }  // namespace test

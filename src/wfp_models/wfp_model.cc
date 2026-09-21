@@ -22,6 +22,94 @@ WFPModel::WFPModel(const eckit::Configuration& conf) {
 }
 
 
+std::vector<WindPoint> WFPModel::computeWindAtTurbines(const WindMap& wMap, const WindFarm& windFarm) const {
+
+    auto arrayU = wMap.arrayU();
+    auto arrayV = wMap.arrayV();
+
+    const std::vector<std::unique_ptr<WindTurbine>>& localTurbines = windFarm.windTurbines();
+
+    std::vector<WindPoint> windAtTurbines;
+    windAtTurbines.reserve(localTurbines.size());
+    for (const auto& wt : localTurbines) {
+        const size_t nearestPointID = wt->nearestPointID();
+        const double hubU_ms        = arrayU(nearestPointID, 0);
+        const double hubV_ms        = arrayV(nearestPointID, 0);
+        windAtTurbines.push_back(WindPoint(*wt, hubU_ms, hubV_ms));
+    }
+    return windAtTurbines;
+}
+
+
+std::vector<WindPoint> WFPModel::computeWindAtPoints(const WindMap& wMap, const WindFarm& windFarm,
+                                                     const std::vector<std::unique_ptr<LatLonPoint>>& points) const {
+
+    std::vector<WindPoint> velPoints;
+    velPoints.reserve(points.size());  // size known upfront — avoid reallocations as it grows
+    auto avgWind = windFarm.computeAvgWindSpeed(wMap);
+
+    // Simple possible implementation:
+    // associate the average wind speed to every point
+    for (const auto& p : points) {
+        velPoints.push_back(WindPoint(*p, avgWind.first, avgWind.second));
+    }
+
+    return velPoints;
+}
+
+
+double WFPModel::computePower(const WindMap& wMap, const WindFarm& windFarm) const {
+
+    // Deliberately not routed through computePowerByTurbine(): that one needs a global-turbine-sized vector
+    // reduce to report per-turbine values, which this method has no use for. A single scalar sum + scalar
+    // reduce gets the same total at a fraction of the communication and allocation cost.
+    const std::vector<std::unique_ptr<WindTurbine>>& localTurbines = windFarm.windTurbines();
+    std::vector<WindPoint> windAtTurbines                          = computeWindAtTurbines(wMap, windFarm);
+
+    double powerLocal = 0.0;
+    for (size_t i_wt = 0; i_wt < windAtTurbines.size(); i_wt++) {
+        const WindPoint& wp = windAtTurbines[i_wt];
+        powerLocal += localTurbines[i_wt]->computePower(wp.wind_u(), wp.wind_v());
+    }
+
+    double powerGlobal = 0.0;
+    eckit::mpi::comm().allReduce(powerLocal, powerGlobal, eckit::mpi::sum());
+
+    return powerGlobal;
+}
+
+
+std::vector<LatLonValue> WFPModel::computePowerByTurbine(const WindMap& wMap, const WindFarm& windFarm) const {
+
+    const std::vector<std::unique_ptr<WindTurbine>>& localTurbines = windFarm.windTurbines();
+    std::vector<WindPoint> windAtTurbines                          = computeWindAtTurbines(wMap, windFarm);
+
+    const std::vector<std::unique_ptr<WindTurbine>>& globalTurbines = windFarm.windTurbinesGlobal();
+
+    std::vector<double> powersLocal(globalTurbines.size(), 0.0);
+    std::vector<double> powersGlobal(globalTurbines.size(), 0.0);
+
+    // local power at each turbine
+    for (size_t i_wt = 0; i_wt < windAtTurbines.size(); i_wt++) {
+        const WindPoint& wp                    = windAtTurbines[i_wt];
+        powersLocal[localTurbines[i_wt]->ID()] = localTurbines[i_wt]->computePower(wp.wind_u(), wp.wind_v());
+    }
+
+    // reduce powers across ranks
+    eckit::mpi::comm().allReduce(powersLocal, powersGlobal, eckit::mpi::sum());
+
+    // Assemble the result only now that the final values are known: building it before the reduce (as this used
+    // to) meant every LatLonValue got default-constructed, then overwritten with a placeholder, then mutated
+    // again via setValue() — three passes/constructions per turbine for one final value.
+    std::vector<LatLonValue> powersByTurbine(globalTurbines.size());
+    for (const auto& wt : globalTurbines) {
+        powersByTurbine[wt->ID()] = LatLonValue(wt->lat(), wt->lon(), powersGlobal[wt->ID()]);
+    }
+
+    return powersByTurbine;
+}
+
+
 // ---------------------------------------------------------
 WFPModelFactory::WFPModelFactory() {}
 
