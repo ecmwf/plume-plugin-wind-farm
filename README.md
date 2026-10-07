@@ -35,6 +35,8 @@ The wind farm plume plugin implements wind farm models that run from an input wi
  - Plume: https://github.com/ecmwf/plume
  - Plume example plugins: https://github.com/ecmwf/plume-examples
 
+Beyond the default one-way (diagnostic) mode, the plugin also supports **two-way coupling**: with a compatible wind farm model (e.g. `roughness`), it writes the farm's aerodynamic effect (e.g. surface roughness) back into the host model, so the wind field the host itself evolves is affected by the farm rather than just being sampled by it. See [config/README.md](config/README.md#two-way-coupling) for configuration details.
+
 
 # Requirements
 Build dependencies:

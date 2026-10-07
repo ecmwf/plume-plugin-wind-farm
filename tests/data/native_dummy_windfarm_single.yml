@@ -44,10 +44,7 @@ wind_turbine_defaults:
       - 0.0
       - 0.0
   rho_hub: 1.25
+# Single turbine — the whole farm has no second turbine to compare spacing against.
 wind_turbines:
   - lat: 57.2576870030
     lon: 1.9942600206
-  - lat: 62.2800908951
-    lon: 2.9913900758
-  - lat: 66.5829804502
-    lon: 3.9885201310

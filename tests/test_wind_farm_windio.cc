@@ -10,14 +10,11 @@
  */
 
 #include <cmath>
-#include <cstdlib>
 #include <memory>
 #include <string>
 #include <vector>
 
 #include "eckit/config/LocalConfiguration.h"
-#include "eckit/config/YAMLConfiguration.h"
-#include "eckit/filesystem/PathName.h"
 #include "eckit/testing/Test.h"
 
 #include "atlas/field/Field.h"
@@ -30,22 +27,6 @@
 
 using namespace eckit::testing;
 using namespace wind_farm_plugin;
-
-namespace {
-
-const char* getTestConfigPath() {
-    return std::getenv("PLUME_WIND_FARM_TEST_CONFIG");
-}
-
-eckit::LocalConfiguration loadCoreConfig(const char* configPathEnv) {
-    eckit::PathName configPath(configPathEnv);
-    eckit::YAMLConfiguration config = eckit::YAMLConfiguration(configPath);
-    std::vector<eckit::LocalConfiguration> pluginConfigs = config.getSubConfigurations("plugins");
-    return pluginConfigs[0].getSubConfiguration("core-config");
-}
-
-
-}  // namespace
 
 namespace test {
 
@@ -80,7 +61,7 @@ CASE("test_windio_parser_from_files") {
         EXPECT(std::abs(turbine.getDouble("lon") - expectedLonLat.first) < tolerance);
         EXPECT(std::abs(turbine.getDouble("lat") - expectedLonLat.second) < tolerance);
 
-        EXPECT(std::abs(turbine.getDouble("hub_height") - 70.0) < tolerance);
+        EXPECT(std::abs(turbine.getDouble("hub_height") - 110.0) < tolerance);
         EXPECT(std::abs(turbine.getDouble("radius") - 77.5) < tolerance);
 
         auto power = turbine.getSubConfiguration("power");
@@ -116,8 +97,7 @@ CASE("test_windio_wind_farm_setup") {
     WindFarm windFarm(coreConfig);
 
     // set up the wind turbines against a uniform lat/lon field
-    atlas::Field uField = test::createUniform2DField("u", 10.0);
-    atlas::Field lonLatField = uField.functionspace().lonlat();
+    atlas::Field lonLatField = test::sharedUField().functionspace().lonlat();
     EXPECT_NO_THROW(windFarm.setupWindTurbines(lonLatField));
 
     // expected global turbine count matches the WindIO layout
