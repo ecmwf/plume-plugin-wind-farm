@@ -9,10 +9,12 @@
  * nor does it submit to any jurisdiction.
  */
 
+#include <cstdlib>
 #include <sstream>
 #include <unordered_map>
 
 #include "eckit/exception/Exceptions.h"
+#include "eckit/filesystem/PathName.h"
 #include "eckit/utils/StringTools.h"
 
 #include "utils.h"
@@ -176,6 +178,18 @@ std::string stripIncludePrefix(const std::string& rawValue) {
 }
 
 
+std::string resolveOutputPath(const std::string& filename) {
+    const char* outputDirEnv = std::getenv("PLUME_PLUGINS_OUTPUT_DIR");
+    if (outputDirEnv && *outputDirEnv) {
+        eckit::PathName outputDir(outputDirEnv);
+        outputDir.mkdir();
+        return (outputDir / filename).asString();
+    }
+
+    return filename;
+}
+
+
 void exportWindPoints(const std::vector<WindPoint>& points, const std::string& filename) {
 
     Log::info() << "Exporting wind points to " << filename << ", size: " << points.size() << std::endl;
@@ -190,6 +204,27 @@ void exportWindPoints(const std::vector<WindPoint>& points, const std::string& f
         file << p.point().lon() << "," << p.point().lat() << "," << p.wind_mag() << std::endl;
     }
 
+
+    file.close();
+    if (file.fail()) {
+        throw eckit::CloseError("Error closing file " + filename, Here());
+    }
+}
+
+
+void exportWindSamples(const std::vector<WindSample>& samples, const std::string& filename) {
+
+    Log::info() << "Exporting wind samples to " << filename << ", size: " << samples.size() << std::endl;
+
+    std::ofstream file(filename);
+    if (!file.is_open()) {
+        throw eckit::CantOpenFile("Error opening file " + filename + " for writing", Here());
+    }
+
+    file << "lon,lat,u,v" << std::endl;
+    for (const auto& s : samples) {
+        file << s.lon << "," << s.lat << "," << s.u << "," << s.v << std::endl;
+    }
 
     file.close();
     if (file.fail()) {

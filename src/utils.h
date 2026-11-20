@@ -142,12 +142,32 @@ std::string stripIncludePrefix(const std::string& rawValue);
 
 
 /**
+ * @brief Resolve where a plugin output file should actually be written.
+ *
+ * If the environment variable PLUME_PLUGINS_OUTPUT_DIR is set (and non-empty), @p filename is placed under that
+ * directory (created if needed) and the resulting path is returned, so Plume can locate/copy the file as one of
+ * its declared outputs. Otherwise, @p filename is returned unchanged (written in place, as before this mechanism
+ * existed).
+ */
+std::string resolveOutputPath(const std::string& filename);
+
+
+/**
  * @brief export wind points to CSV file
  *
  * @param points
  * @param filename
  */
 void exportWindPoints(const std::vector<WindPoint>& points, const std::string& filename);
+
+
+/**
+ * @brief export the host model's real wind, sampled over a lat/lon box, to CSV file
+ *
+ * Writes components (lon,lat,u,v), not the collapsed magnitude exportWindPoints() writes. Writes unconditionally:
+ * callers should skip the call entirely for an empty @p samples .
+ */
+void exportWindSamples(const std::vector<WindSample>& samples, const std::string& filename);
 
 
 /** * @brief Linear interpolation in table of values

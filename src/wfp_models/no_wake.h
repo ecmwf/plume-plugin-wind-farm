@@ -11,8 +11,6 @@
 
 #pragma once
 
-#include <vector>
-
 #include "eckit/config/Configuration.h"
 
 #include "wfp_model.h"
@@ -21,38 +19,19 @@
 namespace wind_farm_plugin {
 
 
+/**
+ * @brief Wind farm model with no wake effect.
+ *
+ * All behaviour is WFPModel's own default (local wind at each turbine, farm-average wind at
+ * arbitrary points, no coupling) — this class exists only so that wind_farm_model.name: no_wake
+ * still resolves to a concrete, registered type via the factory.
+ */
 class NoWake final : public WFPModel {
 
 public:
     NoWake(const eckit::Configuration& conf);
 
-    /**
-     * @brief wind farm parametrization model to compute power output
-     *
-     * @param wMap
-     * @param windFarm
-     * @return double
-     */
-    double computePower(const WindMap& wMap, const WindFarm& windFarm) const override;
-
-    std::vector<LatLonValue> computePowerByTurbine(const WindMap& wMap,
-                                                   const WindFarm& windFarm) const override;
-
-    /**
-     * @brief Computes wind speed at given points
-     *
-     * @param avgWind
-     * @param windFarm
-     * @param points
-     * @return std::vector<WindPoint>
-     */
-    std::vector<WindPoint> computeWindAtPoints(const WindMap& wMap, const WindFarm& windFarm,
-                                               const std::vector<std::unique_ptr<LatLonPoint>>& points) const override;
-
-
     constexpr static const char* type() { return "no_wake"; }
-
-private:
 };
 
 

@@ -12,9 +12,14 @@
 #pragma once
 
 #include "atlas/array.h"
+#include "atlas/domain/Domain.h"
 #include "atlas/field/Field.h"
 #include "atlas/field/detail/FieldImpl.h"
 #include "atlas/functionspace/StructuredColumns.h"
+
+#include "plume/data/FieldAccess.h"
+
+#include "point.h"
 
 
 namespace wind_farm_plugin {
@@ -22,14 +27,11 @@ namespace wind_farm_plugin {
 class WindMap {
 
 public:
-    WindMap(const atlas::Field& fieldU, const atlas::Field& fieldV) : fieldU_{fieldU}, fieldV_{fieldV} {
+    WindMap(plume::data::FieldView fieldU, plume::data::FieldView fieldV) : fieldU_{fieldU}, fieldV_{fieldV} {
         lonLatField_ = fieldU_.functionspace().lonlat();
     };
 
     ~WindMap() = default;
-
-    atlas::Field fieldU() const { return fieldU_; }
-    atlas::Field fieldV() const { return fieldV_; }
 
     atlas::array::ArrayView<const double, 2> arrayU() const {
         return atlas::array::make_view<const double, 2>(fieldU_);
@@ -41,10 +43,35 @@ public:
 
     atlas::Field lonlat() const { return lonLatField_; }
 
+    const atlas::FunctionSpace& functionspace() const { return fieldU_.functionspace(); }
+
+    /**
+     * @brief This rank's own locally-owned wind, at whichever of its grid points fall inside a lat/lon box.
+     *
+     * A box spanning multiple ranks' subdomains needs each rank's result collected separately as done in the wind box
+     * export in two way coupled runs.
+     */
+    std::vector<WindSample> windInBox(double latMin, double latMax, double lonMin, double lonMax) const {
+        atlas::RectangularLonLatDomain box(latMax, lonMin, latMin, lonMax);  // north, west, south, east
+
+        auto lonlatView = atlas::array::make_view<double, 2>(lonLatField_);
+        auto u          = arrayU();
+        auto v          = arrayV();
+
+        std::vector<WindSample> samples;
+        for (size_t i = 0; i < lonlatView.shape(0); i++) {
+            double lon = lonlatView(i, 0);
+            double lat = lonlatView(i, 1);
+            if (box.contains(lon, lat)) {
+                samples.push_back(WindSample{lat, lon, u(i, 0), v(i, 0)});
+            }
+        }
+        return samples;
+    }
 
 private:
-    atlas::Field fieldU_;
-    atlas::Field fieldV_;
+    plume::data::FieldView fieldU_;
+    plume::data::FieldView fieldV_;
     atlas::Field lonLatField_;
 };
 

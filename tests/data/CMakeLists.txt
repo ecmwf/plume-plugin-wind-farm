@@ -11,6 +11,10 @@
 # set(plume_config_native_yml ${CMAKE_CURRENT_SOURCE_DIR}/plume-config-native.yml)
 set(native_dummy_wind_farm_yml ${CMAKE_CURRENT_SOURCE_DIR}/native_dummy_windfarm.yml)
 
+# close-packed variant (turbines ~2.5km apart, in line with the wind direction used by
+# the regression test) so Jensen's wake model actually produces inter-turbine deficit
+set(native_dummy_windfarm_close_yml ${CMAKE_CURRENT_SOURCE_DIR}/native_dummy_windfarm_close.yml)
+
 # files for windio format
 # set(plume_config_windio_yml ${CMAKE_CURRENT_SOURCE_DIR}/plume-config-windio.yml)
 set(windio_dummy_wind_farm_yml ${CMAKE_CURRENT_BINARY_DIR}/windio_dummy_windfarm.yml)
@@ -22,6 +26,9 @@ configure_file(${CMAKE_CURRENT_SOURCE_DIR}/plume-config-native.yml.in
 
 configure_file(${CMAKE_CURRENT_SOURCE_DIR}/plume-config-windio.yml.in
                ${CMAKE_CURRENT_BINARY_DIR}/plume-config-windio.yml @ONLY)
+
+configure_file(${CMAKE_CURRENT_SOURCE_DIR}/plume-config-native-close.yml.in
+               ${CMAKE_CURRENT_BINARY_DIR}/plume-config-native-close.yml @ONLY)
 
 configure_file(${CMAKE_CURRENT_SOURCE_DIR}/windio_dummy_windfarm.yml.in
                ${CMAKE_CURRENT_BINARY_DIR}/windio_dummy_windfarm.yml @ONLY)

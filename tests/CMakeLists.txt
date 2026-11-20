@@ -23,9 +23,108 @@ ecbuild_add_test (
     LIBS
         eckit
         atlas
+        plume_plugin
         wind_farm_plugin
     ENVIRONMENT
         PLUME_WIND_FARM_TEST_CONFIG=${CMAKE_CURRENT_BINARY_DIR}/data/plume-config-native.yml
+        PLUME_WIND_FARM_TEST_CONFIG_CLOSE=${CMAKE_CURRENT_BINARY_DIR}/data/plume-config-native-close.yml
+        PLUME_WIND_FARM_TEST_TURBINES_SINGLE=${CMAKE_CURRENT_SOURCE_DIR}/data/native_dummy_windfarm_single.yml
+)
+
+ecbuild_add_test (
+    TARGET plume_plugin_wind_farm_test_surface_roughness
+    SOURCES
+        test_utils.h
+        test_utils.cc
+        test_surface_roughness.cc
+    INCLUDES
+        $<BUILD_INTERFACE:${PROJECT_BINARY_DIR}/src>
+        $<BUILD_INTERFACE:${PROJECT_SOURCE_DIR}/src>
+        $<BUILD_INTERFACE:${PROJECT_SOURCE_DIR}/tests>
+    LIBS
+        eckit
+        atlas
+        plume_plugin
+        wind_farm_plugin
+    ENVIRONMENT
+        PLUME_WIND_FARM_TEST_CONFIG=${CMAKE_CURRENT_BINARY_DIR}/data/plume-config-native.yml
+        PLUME_WIND_FARM_TEST_CONFIG_CLOSE=${CMAKE_CURRENT_BINARY_DIR}/data/plume-config-native-close.yml
+        PLUME_WIND_FARM_TEST_TURBINES_SINGLE=${CMAKE_CURRENT_SOURCE_DIR}/data/native_dummy_windfarm_single.yml
+)
+
+ecbuild_add_test (
+    TARGET plume_plugin_wind_farm_test_wfp_model_kernel
+    SOURCES
+        test_utils.h
+        test_utils.cc
+        test_wfp_model_kernel.cc
+    INCLUDES
+        $<BUILD_INTERFACE:${PROJECT_SOURCE_DIR}/src>
+        $<BUILD_INTERFACE:${PROJECT_SOURCE_DIR}/tests>
+    LIBS
+        eckit
+        atlas
+        plume_plugin
+        wind_farm_plugin
+    ENVIRONMENT
+        PLUME_WIND_FARM_TEST_CONFIG=${CMAKE_CURRENT_BINARY_DIR}/data/plume-config-native.yml
+        PLUME_WIND_FARM_TEST_TURBINES_MPI=${CMAKE_CURRENT_SOURCE_DIR}/data/native_dummy_windfarm_mpi.yml
+    MPI         3
+    CONDITION   eckit_HAVE_MPI
+)
+
+ecbuild_add_test (
+    TARGET plume_plugin_wind_farm_test_wind_map
+    SOURCES
+        test_utils.h
+        test_utils.cc
+        test_wind_map.cc
+    INCLUDES
+        $<BUILD_INTERFACE:${PROJECT_SOURCE_DIR}/src>
+        $<BUILD_INTERFACE:${PROJECT_SOURCE_DIR}/tests>
+    LIBS
+        eckit
+        atlas
+        plume_plugin
+        wind_farm_plugin
+)
+
+ecbuild_add_test (
+    TARGET plume_plugin_wind_farm_test_plugin
+    SOURCES
+        test_utils.h
+        test_utils.cc
+        test_plugin.cc
+    INCLUDES
+        $<BUILD_INTERFACE:${PROJECT_BINARY_DIR}/src>
+        $<BUILD_INTERFACE:${PROJECT_SOURCE_DIR}/src>
+        $<BUILD_INTERFACE:${PROJECT_SOURCE_DIR}/tests>
+    LIBS
+        eckit
+        atlas
+        plume_plugin
+        wind_farm_plugin
+    ENVIRONMENT
+        PLUME_WIND_FARM_TEST_CONFIG=${CMAKE_CURRENT_BINARY_DIR}/data/plume-config-native.yml
+)
+
+ecbuild_add_test (
+    TARGET plume_plugin_wind_farm_test_wfp_model_regression
+    SOURCES
+        test_utils.h
+        test_utils.cc
+        test_wfp_model_regression.cc
+    INCLUDES
+        $<BUILD_INTERFACE:${PROJECT_SOURCE_DIR}/src>
+        $<BUILD_INTERFACE:${PROJECT_SOURCE_DIR}/tests>
+    LIBS
+        eckit
+        atlas
+        plume_plugin
+        wind_farm_plugin
+    ENVIRONMENT
+        PLUME_WIND_FARM_TEST_CONFIG=${CMAKE_CURRENT_BINARY_DIR}/data/plume-config-native.yml
+        PLUME_WIND_FARM_TEST_CONFIG_CLOSE=${CMAKE_CURRENT_BINARY_DIR}/data/plume-config-native-close.yml
 )
 
 ecbuild_add_test (
@@ -79,6 +178,7 @@ ecbuild_add_test (
     LIBS
         eckit
         atlas
+        plume_plugin
         wind_farm_plugin
     ENVIRONMENT
         PLUME_WIND_FARM_TEST_CONFIG=${CMAKE_CURRENT_BINARY_DIR}/data/plume-config-windio.yml

@@ -21,6 +21,18 @@
 
 namespace wind_farm_plugin {
 
+namespace {
+const eckit::Configuration& selectConfig(const eckit::Configuration& conf, const eckit::Configuration& defaults,
+                                         const std::string& key) {
+    if (conf.has(key)) {
+        return conf;
+    }
+    if (defaults.has(key)) {
+        return defaults;
+    }
+    throw eckit::BadParameter("Wind turbine configuration must have '" + key + "' defined.", Here());
+}
+}  // namespace
 
 // ---- wind turbine
 WindTurbine::WindTurbine(int id, const eckit::Configuration& conf, size_t nearestPointID, double minDistanceLocal,
@@ -30,27 +42,12 @@ WindTurbine::WindTurbine(int id, const eckit::Configuration& conf, size_t neares
     // WT name
     ID_ = id;
 
-    hubHeight_ = conf.getDouble("hub_height", defaults.getDouble("hub_height"));
-    radius_ = conf.getDouble("radius", defaults.getDouble("radius"));
-    rhoHub_ = conf.getDouble("rho_hub", defaults.getDouble("rho_hub"));
+    hubHeight_ = selectConfig(conf, defaults, "hub_height").getDouble("hub_height");
+    radius_    = selectConfig(conf, defaults, "radius").getDouble("radius");
+    rhoHub_    = selectConfig(conf, defaults, "rho_hub").getDouble("rho_hub");
 
-    // if the wt config contains either power, use it
-    if (conf.has("power")) {
-        power_ = std::make_unique<WindTurbinePower>(conf.getSubConfiguration("power"));
-    } else if (defaults.has("power")) {
-        power_ = std::make_unique<WindTurbinePower>(defaults.getSubConfiguration("power"));
-    } else {
-        throw eckit::BadParameter("Wind turbine configuration must have 'power' defined.", Here());
-    }
-
-    // if the wt config contains either thrust, use it
-    if (conf.has("thrust")) {
-        thrust_ = std::make_unique<WindTurbineThrust>(conf.getSubConfiguration("thrust"));
-    } else if (defaults.has("thrust")) {
-        thrust_ = std::make_unique<WindTurbineThrust>(defaults.getSubConfiguration("thrust"));
-    } else {
-        throw eckit::BadParameter("Wind turbine configuration must have 'thrust' defined.", Here());
-    }
+    power_  = std::make_unique<WindTurbinePower>(selectConfig(conf, defaults, "power").getSubConfiguration("power"));
+    thrust_ = std::make_unique<WindTurbineThrust>(selectConfig(conf, defaults, "thrust").getSubConfiguration("thrust"));
 
     // Nearest Grid Point
     nearestPointID_   = nearestPointID;

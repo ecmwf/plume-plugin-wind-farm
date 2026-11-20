@@ -11,8 +11,10 @@
 
 #pragma once
 
+#include <map>
 #include <memory>
 #include <optional>
+#include <string>
 #include <vector>
 
 #include "eckit/config/Configuration.h"
@@ -23,6 +25,13 @@
 
 #include "wind_map.h"
 #include "wind_turbine.h"
+
+namespace plume {
+namespace data {
+class ModelDataView;  // forward declaration — only two-way coupling forwarding needs the full type
+}
+}  // namespace plume
+
 
 namespace wind_farm_plugin {
 
@@ -37,6 +46,17 @@ class WFPModel;
 class WindFarm {
 
 public:
+    /**
+     * @brief wind_farm_box's lat/lon bounds. WindFarmBoxPoints() derives a resampled mesh from these for the
+     * non-coupled wind-box export.
+     */
+    struct BoxBounds {
+        double latMin = 0.0;
+        double latMax = 0.0;
+        double lonMin = 0.0;
+        double lonMax = 0.0;
+    };
+
     WindFarm(const eckit::Configuration& conf);
 
     ~WindFarm();
@@ -99,6 +119,15 @@ public:
      */
     const std::vector<std::unique_ptr<LatLonPoint>>& WindFarmBoxPoints() const { return boxPoints_; }
 
+    /// wind_farm_box's raw lat/lon bounds.
+    const BoxBounds& windFarmBoxBounds() const { return boxBounds_; }
+
+    /**
+     * @brief Average nearest-other-turbine distance among turbines sharing grid point @p pointID, in metres.
+     * @return std::nullopt if @p pointID has no local turbines, or the farm has only one turbine.
+     */
+    std::optional<double> turbineSpacing(size_t pointID) const;
+
     /**
      * @brief Average wind speed at wind farm (i.e. U_mean, V_mean)
      *
@@ -114,6 +143,23 @@ public:
      */
     std::vector<WindPoint> computeWindBox(const WindMap& wMap) const;
 
+    // ---- Two-way coupling: thin forwarding to wfpModel_, same style as computePower/computePowerByTurbine ----
+
+    /// Whether the configured model supports writing a parameter back to the host model.
+    bool supportsCoupling() const;
+
+    /// Caches per-grid-point, run-invariant quantities. Call once, from setup().
+    void initialiseCoupling(const WindMap& wMap);
+
+    /// Called when the host marks the target param updated; writes the farm's impact back.
+    void applyCoupling(const WindMap& wMap, plume::data::ModelDataView& modelData) const;
+
+    /// Writable parameter name the model writes back to, when supportsCoupling().
+    const std::string& couplingTargetParam() const;
+
+    /// Groups this rank's local turbines by nearestPointID (no MPI needed — turbines sharing a point share a rank).
+    std::map<size_t, std::vector<const WindTurbine*>> turbinesByGridPoint() const;
+
     /**
      * @brief Print summary
      *
@@ -122,9 +168,12 @@ public:
 
 private:
     void setupWindFarmBoxPoints();
-    
+
     // calculate avg lat/lon
     void calculateAvgLatLons();
+
+    /// Computes per-grid-point average nearest-other-turbine distance — see turbineSpacing().
+    void setupTurbineSpacing();
 
     // configuration
     eckit::LocalConfiguration config_;
@@ -140,6 +189,12 @@ private:
 
     // wind farm box points
     std::vector<std::unique_ptr<LatLonPoint>> boxPoints_;
+
+    // wind_farm_box's raw bounds
+    BoxBounds boxBounds_;
+
+    // per-grid-point average nearest-other-turbine distance, keyed by nearestPointID.
+    std::map<size_t, double> turbineSpacing_;
 
     // average wind farm lat/lon (local)
     std::optional<LatLonPoint> AvgPoint_;

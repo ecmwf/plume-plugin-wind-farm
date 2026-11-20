@@ -1,0 +1,32 @@
+plugins:
+  - name: WindFarmPlugin
+    lib: wind_farm_plugin
+    parameters:
+      -
+        - name: "u"
+          type: "ATLAS_FIELD"
+          height: &wind_field_height 110
+        - name: "v"
+          type: "ATLAS_FIELD"
+          height: *wind_field_height
+    core-config:
+      wind_farm_model:
+        name: jensen
+        kw: 0.04
+      wind_field_height: *wind_field_height
+      compute_power: true
+      export_wind_box: true
+      export_wind_turbine_power: true
+      # 3x3 grid spanning exactly turbine 0 -> turbine 2 (native_dummy_windfarm_close.yml),
+      # so the diagonal points (index 0, 4, 8 with n_lat=3) land exactly on turbine 0, 1, 2 —
+      # turbine 1 is precisely the midpoint of 0 and 2, since all three are evenly spaced.
+      # Guarantees at least one point inside a real Jensen wake cone, unlike a box placed
+      # off the turbine line.
+      wind_farm_box:
+        lon_min: 0.0000000000
+        lat_min: 50.0000000000
+        lon_max: 0.0625672286
+        lat_max: 50.0201087197
+        n_lon: 3
+        n_lat: 3
+      wind_turbines_filename: "@native_dummy_windfarm_close_yml@"

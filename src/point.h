@@ -57,10 +57,15 @@ private:
 
 /**
  * @brief Associates a lat/lon point to wind velocity.
- * It is used to store the wind components (e.g. computed by the wind farm 
- * model) at specific locations and is not necessarily related to the grid points 
+ * It is used to store the wind components (e.g. computed by the wind farm
+ * model) at specific locations and is not necessarily related to the grid points
  * of the atlas wind fields.
  *
+ * @par Lifetime: point_ is a reference by design since this class's first commit, passes a LatLonPoint/WindTurbine
+ * already owned elsewhere for the call's duration, so it has never dangled. Trades a small size saving
+ * (ref + 2 doubles vs. 4) for requiring producers to have an owned point to reference — which WindSample below doesn't.
+ *
+ * @todo To discuss with reviewers: worth collapsing into one value-owning type now that WindSample exists?
  */
 class WindPoint {
 
@@ -82,6 +87,20 @@ private:
     const LatLonPoint& point_;
     double wind_u_;
     double wind_v_;
+};
+
+
+/**
+ * @brief A grid point's real (not wind-farm-model-derived) wind, as actually held by the host.
+ *
+ * Owns its values, unlike WindPoint: WindMap::windInBox() reads lat/lon/u/v straight off an atlas ArrayView,
+ * with no owned LatLonPoint to reference. See WindPoint's @todo re: collapsing the two.
+ */
+struct WindSample {
+    double lat = 0.0;
+    double lon = 0.0;
+    double u   = 0.0;
+    double v   = 0.0;
 };
 
 }  // namespace wind_farm_plugin

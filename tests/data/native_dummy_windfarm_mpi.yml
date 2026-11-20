@@ -1,0 +1,56 @@
+wind_turbine_defaults:
+  hub_height: 110.0
+  radius: 77.5
+  power:
+    type: tabular_wind_curve
+    is_coefficient: false
+    wind_speeds:
+      - 0.0
+      - 2.2
+      - 4.4
+      - 6.6
+      - 25.25
+      - 30.30
+      - 40.40
+      - 50.50
+    values:
+      - 0.0
+      - 0.0
+      - 99999.0
+      - 200000.0
+      - 5000000.0
+      - 5000000.0
+      - 0.0
+      - 0.0
+  thrust:
+    type: tabular_wind_curve
+    is_coefficient: true
+    wind_speeds:
+      - 0.0
+      - 1.1
+      - 2.2
+      - 3.3
+      - 21.21
+      - 22.22
+      - 33.33
+      - 50.0
+    values:
+      - 0.0
+      - 0.0
+      - 0.2
+      - 0.6
+      - 0.8
+      - 0.3
+      - 0.0
+      - 0.0
+  rho_hub: 1.25
+# Three turbines 60 degrees of latitude apart. Atlas's checkerboard MPI partitioner splits L200x101 into contiguous
+# latitude bands (one per rank), so with MPI_NPROCS=3 each turbine sits well inside a different band's interior.
+# Tests using this fixture should assert this in case Atlas changes its partitioning strategy in the future.
+wind_turbines:
+  - lat: -60.0
+    lon: 0.0
+  - lat: 0.0
+    lon: 0.0
+  - lat: 60.0
+    lon: 0.0

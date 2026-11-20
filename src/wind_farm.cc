@@ -9,9 +9,12 @@
  * nor does it submit to any jurisdiction.
  */
 
+#include <algorithm>
+#include <limits>
 #include <numeric>
 #include <string>
 
+#include "eckit/config/LocalConfiguration.h"
 #include "eckit/config/YAMLConfiguration.h"
 #include "eckit/exception/Exceptions.h"
 #include "eckit/filesystem/PathName.h"
@@ -34,8 +37,8 @@
 namespace wind_farm_plugin {
 
 WindFarm::WindFarm(const eckit::Configuration& conf) : config_{conf} {
-    std::string modelName = config_.getSubConfiguration("wind_farm_model").getString("name");
-    wfpModel_.reset(WFPModelFactory::instance().build(modelName, conf));
+    eckit::LocalConfiguration modelConf = config_.getSubConfiguration("wind_farm_model");
+    wfpModel_.reset(WFPModelFactory::instance().build(modelConf.getString("name"), modelConf));
 }
 
 WindFarm::~WindFarm() = default;
@@ -114,6 +117,9 @@ void WindFarm::setupWindTurbines(atlas::Field lonLatField) {
     // calculate average lat/lon
     calculateAvgLatLons();
 
+    // calculate the average spacing between turbines in the farm
+    setupTurbineSpacing();
+
     // setup wind farm box points
     setupWindFarmBoxPoints();
 
@@ -136,6 +142,70 @@ std::vector<LatLonValue> WindFarm::computePowerByTurbine(const WindMap& wMap) co
 std::vector<WindPoint> WindFarm::computeWindBox(const WindMap& wMap) const {
     const std::vector<std::unique_ptr<LatLonPoint>>& BoxPoints = WindFarmBoxPoints();
     return wfpModel_->computeWindAtPoints(wMap, *this, BoxPoints);
+}
+
+
+bool WindFarm::supportsCoupling() const {
+    return wfpModel_->supportsCoupling();
+}
+
+void WindFarm::initialiseCoupling(const WindMap& wMap) {
+    wfpModel_->initialiseCoupling(*this, wMap);
+}
+
+void WindFarm::applyCoupling(const WindMap& wMap, plume::data::ModelDataView& modelData) const {
+    wfpModel_->applyCoupling(wMap, *this, modelData);
+}
+
+const std::string& WindFarm::couplingTargetParam() const {
+    return wfpModel_->couplingTargetParam();
+}
+
+std::map<size_t, std::vector<const WindTurbine*>> WindFarm::turbinesByGridPoint() const {
+    std::map<size_t, std::vector<const WindTurbine*>> byPoint;
+    for (const auto& wt : windTurbines_) {  // local only — turbines sharing a point already share a rank
+        byPoint[wt->nearestPointID()].push_back(wt.get());
+    }
+    return byPoint;
+}
+
+
+void WindFarm::setupTurbineSpacing() {
+
+    if (windTurbinesGlobal_.size() < 2) {
+        return;  // no array to speak of — turbineSpacing_ stays empty, turbineSpacing() returns nullopt for everyone
+    }
+
+    // O(local turbines * global turbines)
+    for (const auto& entry : turbinesByGridPoint()) {
+        size_t pointID                             = entry.first;
+        const std::vector<const WindTurbine*>& wts = entry.second;
+
+        double spacingSum = 0.0;
+        for (const auto* wt : wts) {
+            double nearestDist = std::numeric_limits<double>::max();
+            for (const auto& other : windTurbinesGlobal_) {
+                if (other->ID() == wt->ID()) {
+                    // wt (from windTurbines_) and other (from windTurbinesGlobal_) are separate WindTurbine
+                    // instances for the same logical turbine so pointer identity never matches; ID does.
+                    continue;
+                }
+                double dist = earthDistance(wt->lat(), wt->lon(), other->lat(), other->lon());
+                nearestDist = std::min(nearestDist, dist);
+            }
+            spacingSum += nearestDist;
+        }
+        turbineSpacing_[pointID] = spacingSum / static_cast<double>(wts.size());
+    }
+}
+
+
+std::optional<double> WindFarm::turbineSpacing(size_t pointID) const {
+    auto it = turbineSpacing_.find(pointID);
+    if (it == turbineSpacing_.end()) {
+        return std::nullopt;
+    }
+    return it->second;
 }
 
 
@@ -202,18 +272,30 @@ void WindFarm::setupWindFarmBoxPoints() {
 
     Log::info() << "Wind Farm Box: " << box_config << std::endl;
 
-    double lonMin = box_config.getDouble("lon_min");
-    double latMin = box_config.getDouble("lat_min");
-    double lonMax = box_config.getDouble("lon_max");
-    double latMax = box_config.getDouble("lat_max");
+    boxBounds_.lonMin = box_config.getDouble("lon_min");
+    boxBounds_.latMin = box_config.getDouble("lat_min");
+    boxBounds_.lonMax = box_config.getDouble("lon_max");
+    boxBounds_.latMax = box_config.getDouble("lat_max");
 
+    const bool hasNLon = box_config.has("n_lon");
+    const bool hasNLat = box_config.has("n_lat");
+
+    if (!hasNLon && !hasNLat) {
+        return;  // return early: no engineering-model mesh requested, bounds alone suffice
+    }
+    if (!hasNLon || !hasNLat) {
+        // flag incorrectness: a partial pair can't build a mesh either way
+        throw eckit::UserError("wind_farm_box: 'n_lon' and 'n_lat' must both be present or both be absent.", Here());
+    }
+
+    // carry on with point sampling: both present, build the mesh
     double n_lon = box_config.getInt("n_lon");
     double n_lat = box_config.getInt("n_lat");
 
     for (size_t ilon = 0; ilon < n_lon; ilon++) {
         for (size_t ilat = 0; ilat < n_lat; ilat++) {
-            double lon = lonMin + ilon * (lonMax - lonMin) / (n_lon - 1);
-            double lat = latMin + ilat * (latMax - latMin) / (n_lat - 1);
+            double lon = boxBounds_.lonMin + ilon * (boxBounds_.lonMax - boxBounds_.lonMin) / (n_lon - 1);
+            double lat = boxBounds_.latMin + ilat * (boxBounds_.latMax - boxBounds_.latMin) / (n_lat - 1);
             boxPoints_.push_back(std::make_unique<LatLonPoint>(lat, lon));
         }
     }

@@ -56,9 +56,9 @@ public:
     constexpr static const char* type() { return "WindFarmPlugin"; }
 
 private:
-
-    // Assemble a filename with a given prefix and (optionally) time step
-    std::string assembleFilename(const std::string& prefix, std::optional<int> timeStep) const;
+    // Assemble a filename with a given prefix and (optionally) time step and/or rank
+    std::string assembleFilename(const std::string& prefix, std::optional<int> timeStep,
+                                 std::optional<size_t> rank = std::nullopt) const;
 
     // When append mode is enabled, check whether the (single) wind turbine power
     // output file already exists on disk.
@@ -83,6 +83,10 @@ private:
     // flag for computing power
     bool computePowerEnabled_;
 
+    // Inferred, not a config key: true when the selected model both supports coupling and has a target param
+    // actually negotiated as writable.
+    bool twoWayEnabled_;
+
     // flag for exporting wind box
     bool exportWindBoxEnabled_;
 
@@ -91,7 +95,6 @@ private:
 
     // flag for appending wind turbine power to a single file (instead of per-step files)
     bool exportWtPowerAppend_;
-
 };
 // ------------------------------------------------------
 
